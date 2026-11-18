@@ -58,21 +58,58 @@
     });
     return out.slice(0, 60);
   }
+  /* Read the start of a media file: first directly (works when the site allows it), then through
+     the extension if you've allowed "Read image details". Originals behind image services are tried too. */
+  async function readDirect(url, video) {
+    try {
+      const res = await fetch(url, { mode: "cors", credentials: "omit", headers: { Range: `bytes=0-${video ? 1048575 : 2097151}` } });
+      if (!res.ok && res.status !== 206) return null;
+      const r = res.body.getReader(), parts = []; let size = 0, max = video ? 1048576 : 2097152;
+      while (size < max) { const { done, value } = await r.read(); if (done) break; parts.push(value); size += value.length; }
+      r.cancel().catch(() => {}); const buf = new Uint8Array(Math.min(size, max)); let o = 0; for (const p of parts) { const n = Math.min(p.length, buf.length - o); buf.set(p.subarray(0, n), o); o += n; if (o >= buf.length) break; }
+      return MD.inspectBytes(new TextDecoder("latin1").decode(buf));
+    } catch { return null; }
+  }
+  async function readBytes(url, video) {
+    const tries = [...MD.unwrap(url), url]; let merged = null, needPermission = false, original = false, readable = false;
+    for (const u of tries) {
+      if (!/^(https?|blob|data|chrome-extension):/.test(u)) continue;
+      let b = await readDirect(u, video);
+      if (!b) { const r = await ask({ type: "inspect", url: u, video }); if (r?.needPermission) needPermission = true; b = r?.bytes || null; }
+      if (b) { readable = true; if (u !== url) original = true; if (!merged) merged = b; else { merged.hits.push(...b.hits); merged.c2pa ||= b.c2pa; merged.camera ||= b.camera; } if (b.hits.length) break; }
+    }
+    return { bytes: merged, needPermission: needPermission && !readable, original, readable };
+  }
+  function flagMedia(it, j) {
+    const b = band(j.score), el = it.el;
+    el.dataset.sloptical = j.score; el.dataset.slopticalWhy = JSON.stringify(j.reasons); el.dataset.slopticalKind = it.kind;
+    const m = { el, score: j.score, kind: it.kind, reasons: j.reasons, url: it.url, prevOutline: el.style.outline, prevOffset: el.style.outlineOffset };
+    el.style.outline = `4px solid ${COLORS[b]}`; el.style.outlineOffset = "-4px"; state.media.push(m); addBadge(m);
+  }
+  async function judgeItem(it) {
+    const rb = await readBytes(it.url, it.kind === "video");
+    return { rb, j: MD.judge({ url: it.url, label: nearbyLabel(it.el), w: it.w, h: it.h, kind: it.kind, bytes: rb.bytes, original: rb.original, readable: rb.readable }) };
+  }
   async function scanMedia() {
-    const items = mediaItems(); let checked = 0, flagged = 0, needPermission = false;
+    const items = mediaItems(); let checked = 0, flagged = 0, needPermission = false, stripped = 0;
     const run = async it => {
-      let bytes = null;
-      if (/^(https?|blob|data|chrome-extension):/.test(it.url)) { const r = await ask({ type: "inspect", url: it.url, video: it.kind === "video" }); if (r?.needPermission) needPermission = true; else if (r?.bytes) bytes = r.bytes; }
-      const j = MD.judge({ url: it.url, label: nearbyLabel(it.el), w: it.w, h: it.h, kind: it.kind, bytes }); checked++;
-      if (j.score > state.settings.threshold) {
-        flagged++; const b = band(j.score), el = it.el;
-        el.dataset.sloptical = j.score; el.dataset.slopticalWhy = JSON.stringify(j.reasons); el.dataset.slopticalKind = it.kind;
-        const m = { el, score: j.score, kind: it.kind, reasons: j.reasons, url: it.url, prevOutline: el.style.outline, prevOffset: el.style.outlineOffset };
-        el.style.outline = `4px solid ${COLORS[b]}`; el.style.outlineOffset = "-4px"; state.media.push(m); addBadge(m);
-      }
+      const { rb, j } = await judgeItem(it); checked++; if (rb.needPermission) needPermission = true; if (MD.reencoded(it.url) && !j.evidence) stripped++;
+      if (j.score > state.settings.threshold) { flagged++; flagMedia(it, j); }
     };
     const queue = [...items]; await Promise.all([...Array(4)].map(async () => { while (queue.length) await run(queue.shift()); }));
-    return { checked, flagged, needPermission };
+    return { checked, flagged, needPermission, stripped };
+  }
+  /* right-click "Check this image or video" */
+  async function checkMedia(url) {
+    const el = [...document.querySelectorAll("img, video")].find(e => [e.currentSrc, e.src, e.poster].includes(url)) || null;
+    const kind = el?.tagName === "VIDEO" ? "video" : /\.gif(\?|#|$)/i.test(url) ? "gif" : "image";
+    toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-n"></span><strong>Checking…</strong><span>reading the ${kind}’s details</span></div>`);
+    const it = { el: el || document.body, kind, url, w: el?.naturalWidth || el?.videoWidth || 0, h: el?.naturalHeight || el?.videoHeight || 0 };
+    const { j } = await judgeItem(it);
+    if (el && j.score > state.settings.threshold && !el.dataset.sloptical) flagMedia(it, j);
+    const flagged = j.score > 50, list = flagged ? j.reasons : [...j.reasons.map(r => `Weak sign only: ${r}`), ...j.notes];
+    toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${flagged ? band(j.score) : "n"}"></span><strong>${flagged ? j.score + "%" : j.reasons.length ? "No strong AI evidence" : "No AI evidence"}</strong><span>${flagged ? label(j.score) : "found in this " + kind}</span></div>${list.length ? `<ul>${list.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">${flagged ? "Based on the evidence found. Check the original source before sharing." : "Sloptical only reports evidence it can find. Click to close."}</p>`);
+    return j;
   }
   function addBadge(m) {
     const b = document.createElement("div"); b.className = `sloptical-ui sloptical-badge sloptical-badge-${band(m.score)}`;
@@ -148,12 +185,13 @@
     return r;
   }
 
-  window.__sloptical = { scan, clear: () => { stopWatch(); clear(); say({ type: "badge", count: 0 }); }, checkText, stats: () => state.lastStats, focus: focusItem };
+  window.__sloptical = { checkMedia, scan, clear: () => { stopWatch(); clear(); say({ type: "badge", count: 0 }); }, checkText, stats: () => state.lastStats, focus: focusItem };
   try {
     chrome.runtime.onMessage.addListener((msg, _s, reply) => {
       if (msg.type === "scan") { scan(msg.settings).then(reply); return true; }
       if (msg.type === "clear") { window.__sloptical.clear(); reply({ ok: true }); }
       else if (msg.type === "check") reply(checkText(msg.text || String(getSelection())));
+      else if (msg.type === "checkMedia") { checkMedia(msg.url).then(reply); return true; }
       else if (msg.type === "stats") reply(state.lastStats);
       else if (msg.type === "focus") { focusItem(msg.kind, msg.i); reply({ ok: true }); }
     });

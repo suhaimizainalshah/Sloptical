@@ -14,6 +14,7 @@ async function scanTab(tab) {
 }
 chrome.runtime.onInstalled.addListener(({ reason }) => {
   chrome.contextMenus.create({ id: "sloptical-check", title: "Check selected text with Sloptical", contexts: ["selection"] });
+  chrome.contextMenus.create({ id: "sloptical-media", title: "Check this image or video with Sloptical", contexts: ["image", "video"] });
   chrome.contextMenus.create({ id: "sloptical-scan", title: "Scan this page with Sloptical", contexts: ["page", "image", "video"] });
   if (reason === "install") chrome.tabs.create({ url: "welcome.html" });
 });
@@ -21,6 +22,7 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab?.id) return;
   try { await inject(tab.id); } catch { return; }
   if (info.menuItemId === "sloptical-check") chrome.tabs.sendMessage(tab.id, { type: "check", text: info.selectionText });
+  else if (info.menuItemId === "sloptical-media") chrome.tabs.sendMessage(tab.id, { type: "checkMedia", url: info.srcUrl });
   else scanTab(tab);
 });
 chrome.commands.onCommand.addListener(async cmd => { if (cmd !== "scan-page") return; const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); if (tab?.id) scanTab(tab); });

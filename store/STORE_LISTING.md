@@ -17,6 +17,7 @@ HIGHLIGHTS ON ANY PAGE
 IMAGES, GIFS AND VIDEOS
 • Flags media with evidence of AI generation: Content Credentials (C2PA) and IPTC labels, Stable Diffusion and ComfyUI settings, generator names in metadata, AI image services, and “AI-generated” labels nearby.
 • Each flagged item gets a badge with its likelihood and reasons.
+• Right-click any image or video to check it in detail. Where a site re-compresses images, Sloptical also checks the original file.
 
 CHECK YOUR OWN WRITING
 • Paste any text to see how AI-like it reads, what share of sentences give it away, and sentence-by-sentence colour coding.
@@ -44,4 +45,4 @@ Highlights content on web pages that is likely AI-generated and explains why.
 Does not collect or transmit any user data.
 
 ## Privacy policy URL
-https://<your-github-username>.github.io/sloptical/privacy.html
+https://github.com/suhaimizainalshah/Sloptical/blob/main/privacy.html

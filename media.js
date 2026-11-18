@@ -28,13 +28,31 @@
     [/NovelAI|Leonardo\.Ai|Ideogram|Stable Diffusion|stability\.ai|Flux\.?1|Black Forest Labs|Runway|Kling|Sora/i, 88, "Metadata names an AI image or video generator"],
   ];
   const CAMERA = /(Canon|NIKON|SONY|FUJIFILM|OLYMPUS|Panasonic|Leica|Apple\x00|iPhone|SAMSUNG|Google Pixel|HUAWEI|Xiaomi|OnePlus|GoPro|DJI)/;
+  /* Image services that resize or re-compress images. Many keep the original's address inside
+     their own, so Sloptical can check the original file, which may still carry its AI labels. */
+  function unwrap(url) {
+    const out = [];
+    try {
+      const u = new URL(url, location.href), dec = s => { try { return decodeURIComponent(s); } catch { return s; } };
+      const tail = u.href.match(/\/(https?(?:%3A|:)(?:%2F|\/){2}.+)$/i);
+      if (/substackcdn\.com$|cloudinary\.com$|imagekit\.io$/.test(u.hostname) && tail) out.push(dec(tail[1]));
+      if (u.pathname.includes("/cdn-cgi/image/")) { const rest = u.pathname.split("/cdn-cgi/image/")[1].split("/").slice(1).join("/"); out.push(/^https?:/.test(rest) ? dec(rest) : u.origin + "/" + rest); }
+      if (u.pathname.startsWith("/_next/image") && u.searchParams.get("url")) out.push(new URL(u.searchParams.get("url"), u.origin).href);
+      if (/^i[0-3]\.wp\.com$/.test(u.hostname)) out.push("https://" + u.pathname.slice(1));
+      if (/images\.weserv\.nl$/.test(u.hostname) && u.searchParams.get("url")) { const v = u.searchParams.get("url"); out.push(/^https?:/.test(v) ? v : "https://" + v); }
+      if (/(googleusercontent|ggpht)\.com$/.test(u.hostname)) out.push(u.href.replace(/=[^/=]*$/, "=s0"));
+    } catch {}
+    return [...new Set(out.filter(x => x && x !== url))];
+  }
+  const REENCODES = /substackcdn\.com|\/cdn-cgi\/image\/|\/_next\/image|i[0-3]\.wp\.com|miro\.medium\.com|pbs\.twimg\.com|scontent|fbcdn\.net|cdninstagram|i\.ytimg\.com|googleusercontent\.com|media\.licdn\.com|imgix\.net|cloudinary\.com|images\.weserv\.nl|redd\.it|imgur\.com/i;
+  const reencoded = url => REENCODES.test(url);
   function inspectBytes(latin) {
     const out = { hits: [], camera: false, c2pa: /c2pa|jumbf/i.test(latin) };
     for (const [re, p, why] of META) if (re.test(latin)) out.hits.push({ p, why });
     out.camera = CAMERA.test(latin) && /Exif/.test(latin);
     return out;
   }
-  function judge({ url = "", label = "", w = 0, h = 0, kind = "image", bytes = null }) {
+  function judge({ url = "", label = "", w = 0, h = 0, kind = "image", bytes = null, original = false, readable = true }) {
     let p = 12; const why = [];
     if (bytes) {
       if (bytes.hits.length) { const top = bytes.hits.sort((a, b) => b.p - a.p)[0]; p = Math.max(p, top.p); why.push(top.why); bytes.hits.slice(1, 2).forEach(x => why.push(x.why)); }
@@ -44,7 +62,14 @@
     for (const [re, name] of HOSTS) if (re.test(url)) { p = Math.max(p, name === "the file name" ? 72 : 86); why.push(name === "the file name" ? "The file name mentions AI generation" : `Comes from ${name}`); break; }
     if (LABEL.test(label)) { p = Math.max(p, 84); why.push("Labelled as AI-generated nearby"); }
     if (w && h && GEN_SIZES.has(`${w}x${h}`) && kind === "image") { p = why.length ? Math.min(99, p + 4) : Math.max(p, 32); why.push(`Exact size (${w}×${h}) common for AI generators`); }
-    return { score: Math.min(99, p), reasons: why.slice(0, 3), evidence: why.length > 0 };
+    const notes = [];
+    if (p <= 50) {
+      if (reencoded(url) && !original) notes.push("This site re-compresses images, which removes hidden AI labels, so only links, labels and size could be checked.");
+      else if (reencoded(url) && original) notes.push("The site re-compresses images, but Sloptical also checked the original file and found no AI labels.");
+      if (!bytes && !readable) notes.push("The file’s hidden details couldn’t be read. Turn on “Read image details” in Settings for a deeper check.");
+      notes.push(why.length ? "No strong evidence found. Many AI images carry no labels, so this doesn’t mean it was made by a person." : "No evidence found. Many AI images carry no labels, so this doesn’t mean it was made by a person.");
+    }
+    return { score: Math.min(99, p), reasons: why.slice(0, 3), evidence: p > 50, notes };
   }
-  globalThis.SlopticalMedia = { inspectBytes, judge };
+  globalThis.SlopticalMedia = { inspectBytes, judge, unwrap, reencoded };
 })();
