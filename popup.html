@@ -1,0 +1,131 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Sloptical</title>
+<style>
+:root{--bg:#ffffff;--panel:#f6f7f9;--ink:#16191d;--muted:#5d6671;--line:#e3e7eb;--accent:#d6336c;--accent-2:#ff8a3d;--on:#fff;--y:#ffd60a;--o:#ff9a3c;--p:#ff6fb5;--ok:#2f9e6a;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#17191d;--panel:#202328;--ink:#eef1f4;--muted:#9aa4ae;--line:#30353b;--accent:#ff5c95;--accent-2:#ffa45c;--on:#1a0b11;--ok:#4cc38a;color-scheme:dark}}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+html,body{margin:0}
+body{width:380px;max-height:600px;background:var(--bg);color:var(--ink);font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;display:flex;flex-direction:column}
+button,textarea,input,select{font:inherit;color:inherit}
+button{cursor:pointer}
+:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+header{display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
+header img{width:30px;height:30px;border-radius:8px}
+header h1{font-size:17px;margin:0;letter-spacing:-.015em}
+header .ver{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.tabs{display:flex;gap:2px;margin:0 16px;padding:3px;border-radius:11px;background:var(--panel)}
+.tabs button{flex:1;height:32px;border:0;border-radius:8px;background:transparent;color:var(--muted);font-weight:650;font-size:13px}
+.tabs button[aria-selected=true]{background:var(--bg);color:var(--ink);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+main{overflow:auto;padding:12px 16px 14px;flex:1}
+section{display:grid;gap:12px}
+.primary{width:100%;height:42px;border:0;border-radius:11px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font-weight:750;letter-spacing:.01em;box-shadow:0 8px 18px -10px var(--accent)}
+.primary:hover{filter:brightness(1.05)}.primary:disabled{opacity:.5;cursor:default;box-shadow:none}
+.ghost{height:34px;padding:0 12px;border:1px solid var(--line);border-radius:9px;background:var(--bg);font-weight:600;font-size:13px}
+.ghost:hover{background:var(--panel)}
+.row{display:flex;gap:8px;align-items:center}.row>*{flex:1}
+.hero{display:grid;justify-items:center;text-align:center;gap:8px;padding:18px 8px 6px}
+.hero svg{width:64px;height:64px}
+.hero h2{margin:0;font-size:16px}
+.muted{color:var(--muted);font-size:12.5px;margin:0}
+kbd{font:600 11px/1 ui-monospace,monospace;padding:3px 5px;border:1px solid var(--line);border-bottom-width:2px;border-radius:5px;background:var(--panel)}
+.card{background:var(--panel);border-radius:14px;padding:12px}
+.score{display:grid;grid-template-columns:84px 1fr;gap:12px;align-items:center}
+.ring{position:relative;width:84px;height:84px}
+.ring svg{width:84px;height:84px;transform:rotate(-90deg)}
+.ring b{position:absolute;inset:0;display:grid;place-items:center;font-size:22px;font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.ring b small{font-size:12px;font-weight:600}
+.verdict{font-weight:700;font-size:14.5px;line-height:1.3}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:999px;background:var(--bg);border:1px solid var(--line);font-size:12px;font-weight:600}
+.chip i{width:9px;height:9px;border-radius:50%}
+.y{background:var(--y)}.o{background:var(--o)}.p{background:var(--p)}.n{background:var(--ok)}
+h3{margin:2px 0 0;font-size:12.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.list{display:grid;gap:6px}
+.item{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:center;width:100%;text-align:left;padding:8px 10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.item:hover{border-color:var(--accent)}
+.item .txt{font-size:12.5px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.pill{min-width:44px;text-align:center;padding:3px 6px;border-radius:8px;font-weight:800;font-size:12px;color:#1b1f24;font-variant-numeric:tabular-nums}
+.thumb{width:44px;height:44px;border-radius:8px;object-fit:cover;background:var(--panel);display:block}
+.mediaRow{grid-template-columns:44px 1fr auto}
+.note{display:flex;gap:8px;align-items:flex-start;padding:10px;border-radius:10px;background:color-mix(in srgb,var(--accent) 9%,var(--bg));font-size:12.5px}
+textarea{width:100%;min-height:128px;resize:vertical;padding:10px 12px;border:1px solid var(--line);border-radius:11px;background:var(--bg);line-height:1.45}
+textarea:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 22%,transparent)}
+.meter{height:8px;border-radius:999px;background:var(--line);overflow:hidden}.meter i{display:block;height:100%;border-radius:999px}
+.give{display:grid;gap:5px}
+.give div{display:flex;align-items:center;gap:6px;flex-wrap:wrap;font-size:12.5px}
+.give q{font-weight:700;quotes:"“" "”"}
+.give .alt{color:var(--ok);font-weight:600}
+ul.tips{margin:0;padding-left:18px;display:grid;gap:4px;font-size:12.5px}
+.preview{font-size:12.5px;line-height:1.6;max-height:160px;overflow:auto;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--bg)}
+.preview span{border-radius:3px;padding:1px 0}
+.preview .sy{background:rgba(255,214,10,.35)}.preview .so{background:rgba(255,154,60,.35)}.preview .sp{background:rgba(255,111,181,.35)}
+label.sw{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:13.5px;cursor:pointer;padding:4px 0}
+label.sw input{appearance:none;width:36px;height:21px;border-radius:999px;background:var(--line);position:relative;flex:none;transition:background .15s;cursor:pointer}
+label.sw input::after{content:"";position:absolute;top:2px;left:2px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 2px rgba(0,0,0,.25);transition:left .15s}
+label.sw input:checked{background:var(--accent)}label.sw input:checked::after{left:17px}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.set{display:grid;gap:4px;padding:10px 0;border-bottom:1px solid var(--line)}
+.set:last-child{border:0}
+footer{padding:9px 16px;border-top:1px solid var(--line);font-size:11.5px;color:var(--muted);display:flex;justify-content:space-between;gap:8px}
+footer a{color:inherit}
+.toast{position:fixed;left:50%;bottom:44px;transform:translate(-50%,8px);opacity:0;background:var(--ink);color:var(--bg);padding:7px 12px;border-radius:9px;font-size:12.5px;font-weight:600;transition:.2s;pointer-events:none}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><img src="icons/icon48.png" alt=""><h1>Sloptical</h1><span class="ver" id="ver"></span></header>
+<nav class="tabs" role="tablist" aria-label="Sections">
+  <button role="tab" id="t-page" aria-controls="s-page" aria-selected="true">This page</button>
+  <button role="tab" id="t-text" aria-controls="s-text" aria-selected="false">Check writing</button>
+  <button role="tab" id="t-set" aria-controls="s-set" aria-selected="false">Settings</button>
+</nav>
+<main>
+  <!-- PAGE -->
+  <section id="s-page" role="tabpanel" aria-labelledby="t-page">
+    <div class="hero" id="hero">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd60a"/><stop offset=".5" stop-color="#ff9a3c"/><stop offset="1" stop-color="#ff6fb5"/></linearGradient></defs><rect width="64" height="64" rx="16" fill="url(#g)"/><ellipse cx="32" cy="33" rx="20" ry="12" fill="#16191d"/><circle cx="32" cy="33" r="7" fill="#fff"/><circle cx="32" cy="33" r="3.2" fill="#16191d"/></svg>
+      <h2>See what reads like AI on this page</h2>
+      <p class="muted">Text, images, GIFs and videos are checked on your device.</p>
+    </div>
+    <button class="primary" id="scan">Scan this page</button>
+    <p class="muted" style="text-align:center" id="shortcut">Shortcut <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>, or right-click any text to check it.</p>
+    <div id="results" hidden aria-live="polite"></div>
+    <p class="muted" id="week"></p>
+  </section>
+
+  <!-- WRITING -->
+  <section id="s-text" role="tabpanel" aria-labelledby="t-text" hidden>
+    <label for="txt" class="muted">Paste any text, including your own draft, to see how AI-like it reads and how to make it sound more like you.</label>
+    <textarea id="txt" placeholder="Paste text here (at least 25 words)"></textarea>
+    <div class="row"><span class="muted" id="wc">0 words</span><button class="primary" id="checkTxt" disabled style="flex:0 0 150px;height:38px">Check writing</button></div>
+    <div id="tResults" hidden aria-live="polite"></div>
+  </section>
+
+  <!-- SETTINGS -->
+  <section id="s-set" role="tabpanel" aria-labelledby="t-set" hidden>
+    <div class="set"><div class="row" style="justify-content:space-between"><strong style="flex:none">Highlight from</strong><strong id="thOut" style="flex:none">50%</strong></div><input type="range" id="threshold" min="50" max="90" step="5" value="50" aria-label="Only highlight above this likelihood"><p class="muted">Raise this to see only the strongest cases.</p></div>
+    <div class="set">
+      <label class="sw">Underline giveaway phrases<input type="checkbox" id="phrases"></label>
+      <label class="sw">Check images, GIFs and videos<input type="checkbox" id="media"></label>
+      <label class="sw">Keep checking as the page loads more<input type="checkbox" id="watch"></label>
+    </div>
+    <div class="set">
+      <label class="sw">Read image details (deeper media check)<input type="checkbox" id="deep"></label>
+      <label class="sw">Scan every page automatically<input type="checkbox" id="auto"></label>
+      <p class="muted">Both ask Chrome for access to the sites you visit, so Sloptical can read image metadata or scan without a click. Nothing is sent anywhere.</p>
+    </div>
+    <div class="set"><label for="skip"><strong>Never scan these sites</strong></label><textarea id="skip" style="min-height:58px" placeholder="example.com, mail.google.com"></textarea></div>
+    <div class="set"><div class="row"><button class="ghost" id="clear">Remove highlights</button><button class="ghost" id="resetStats">Clear my stats</button></div><button class="ghost" id="welcome">How Sloptical works</button></div>
+  </section>
+</main>
+<footer><span>An estimate, not proof. Nothing leaves your device.</span><a href="privacy.html" target="_blank">Privacy</a></footer>
+<div class="toast" id="toast" role="status"></div>
+<script src="detector.js"></script>
+<script src="popup.js"></script>
+</body>
+</html>

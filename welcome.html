@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Welcome to Sloptical</title>
+<link rel="stylesheet" href="content.css">
+<style>
+:root{--bg:#fbfbfc;--panel:#fff;--ink:#16191d;--muted:#5d6671;--line:#e3e7eb;--accent:#d6336c;--accent-2:#ff8a3d;color-scheme:light}
+@media (prefers-color-scheme:dark){:root{--bg:#121417;--panel:#1b1e22;--ink:#eef1f4;--muted:#9aa4ae;--line:#2e3339;--accent:#ff5c95;--accent-2:#ffa45c;color-scheme:dark}}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font:16px/1.6 system-ui,-apple-system,"Segoe UI",sans-serif}
+.wrap{max-width:960px;margin:0 auto;padding:48px 24px 72px}
+.hero{display:grid;grid-template-columns:1.2fr .8fr;gap:40px;align-items:center}
+.hero h1{font-size:clamp(2rem,4.5vw,3rem);line-height:1.08;letter-spacing:-.03em;margin:0 0 14px}
+.hero p{color:var(--muted);font-size:1.1rem;margin:0}
+.logo{width:180px;height:180px;justify-self:center;border-radius:42px;background:linear-gradient(135deg,#ffd60a,#ff9a3c 50%,#ff6fb5);display:grid;place-items:center;box-shadow:0 30px 60px -30px #ff6fb5}
+.logo svg{width:110px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin:44px 0}
+.step{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px}
+.step b{display:grid;place-items:center;width:30px;height:30px;border-radius:50%;background:var(--ink);color:var(--bg);font-size:14px;margin-bottom:10px}
+.step h3{margin:0 0 4px;font-size:1.05rem}.step p{margin:0;color:var(--muted);font-size:.95rem}
+kbd{font:600 12px/1 ui-monospace,monospace;padding:3px 6px;border:1px solid var(--line);border-bottom-width:2px;border-radius:6px;background:var(--panel)}
+.legend{display:flex;gap:14px;flex-wrap:wrap;margin:8px 0 0}
+.legend span{display:flex;align-items:center;gap:8px;font-weight:600}
+.legend i{width:16px;height:16px;border-radius:4px}
+h2{font-size:1.5rem;letter-spacing:-.02em;margin:48px 0 10px}
+.demo{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:26px 28px;font-family:Georgia,serif;font-size:17px}
+.demo h4{font:700 1.4rem Georgia,serif;margin:0 0 12px}
+.demo .imgs{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:16px 0}
+.demo img{width:100%;border-radius:10px;display:block}
+.demo figcaption{font:13px system-ui;color:var(--muted);margin-top:4px}
+.btn{display:inline-flex;align-items:center;gap:8px;height:46px;padding:0 20px;border:0;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));color:#fff;font:700 15px system-ui;cursor:pointer;margin:6px 0 18px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+.box{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:18px 20px}
+.box h3{margin:0 0 6px;font-size:1.05rem}.box ul{margin:0;padding-left:18px;color:var(--muted)}
+@media (max-width:760px){.hero,.steps,.grid2,.demo .imgs{grid-template-columns:1fr}.logo{display:none}}
+</style>
+</head>
+<body><div class="wrap">
+<section class="hero">
+  <div><h1>Spot AI slop before it fools you</h1><p>Sloptical highlights writing, images and videos that are likely made with AI, explains why, and helps your own writing sound more like you. Everything runs on your device.</p>
+  <div class="legend" aria-label="Highlight colours"><span><i style="background:#ffd60a"></i>Possibly AI (51–64%)</span><span><i style="background:#ff9a3c"></i>Likely (65–79%)</span><span><i style="background:#ff6fb5"></i>Very likely (80%+)</span></div></div>
+  <div class="logo" aria-hidden="true"><svg viewBox="0 0 64 40"><ellipse cx="32" cy="20" rx="30" ry="18" fill="#16191d"/><circle cx="32" cy="20" r="10" fill="#fff"/><circle cx="32" cy="20" r="4.5" fill="#16191d"/></svg></div>
+</section>
+<section class="steps">
+  <div class="step"><b>1</b><h3>Pin it</h3><p>Click the puzzle piece in Chrome’s toolbar, then the pin next to Sloptical.</p></div>
+  <div class="step"><b>2</b><h3>Scan any page</h3><p>Click the icon and press Scan, or use <kbd>Alt</kbd>+<kbd>Shift</kbd>+<kbd>S</kbd>.</p></div>
+  <div class="step"><b>3</b><h3>Hover to see why</h3><p>Every highlight explains its likelihood. Right-click any text to check just that part.</p></div>
+</section>
+<h2>Try it right here</h2>
+<button class="btn" id="try">Scan this demo</button>
+<article class="demo">
+  <h4>Harbour festival returns after five-year break</h4>
+  <p>The harbour festival returned on Saturday for the first time since 2019, drawing about 8,000 people to the waterfront despite light rain. Stallholders said takings were down on the last event, but most were relieved it went ahead at all. Fireworks were moved to Sunday because of the wind.</p>
+  <p>In today’s fast-paced world, community events play a crucial role in fostering connection. Moreover, festivals like this one serve as a testament to the vibrant tapestry of local culture. It’s important to note that such gatherings empower residents to navigate the complexities of modern life together.</p>
+  <div class="imgs"><figure style="margin:0"><img src="demo/demo-ai.png" alt="Sunset over the sea"><figcaption>Poster artwork</figcaption></figure><figure style="margin:0"><img src="demo/demo-photo.jpg" alt="The harbour on Saturday"><figcaption>The harbour on Saturday</figcaption></figure></div>
+  <p>Organisers hope to make the festival annual again. “We nearly gave up last year,” said volunteer Priya Nair. “Then 40 people turned up to a planning meeting in a pub, and that was that.”</p>
+</article>
+<section class="grid2" style="margin-top:28px">
+  <div class="box"><h3>What it checks</h3><ul><li>Writing style: overused chatbot phrases, uniform sentences, template contrasts, leftover chatbot text.</li><li>Images, GIFs and videos: Content Credentials, generator metadata, AI image services and “AI-generated” labels.</li><li>Your own drafts, with tips to sound more like you.</li></ul></div>
+  <div class="box"><h3>What to keep in mind</h3><ul><li>It’s an estimate, not proof. People write like this too, especially formally or in a second language.</li><li>Most AI images have their details stripped, so “no evidence” doesn’t mean human-made.</li><li>Nothing you read is sent anywhere. No accounts, no tracking.</li></ul></div>
+</section>
+</div>
+<script src="detector.js"></script><script src="media.js"></script><script src="content.js"></script>
+<script src="welcome.js"></script>
+</body></html>

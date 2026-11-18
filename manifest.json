@@ -1,0 +1,43 @@
+{
+  "manifest_version": 3,
+  "name": "Sloptical",
+  "short_name": "Sloptical",
+  "version": "1.1.0",
+  "description": "Highlights writing, images and videos that are likely AI-generated, explains why on hover, and checks your own writing. Runs on your device.",
+  "action": {
+    "default_popup": "popup.html",
+    "default_title": "Scan this page with Sloptical",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "permissions": [
+    "activeTab",
+    "scripting",
+    "storage",
+    "contextMenus"
+  ],
+  "optional_host_permissions": [
+    "<all_urls>"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "commands": {
+    "scan-page": {
+      "suggested_key": {
+        "default": "Alt+Shift+S"
+      },
+      "description": "Scan this page"
+    }
+  }
+}
