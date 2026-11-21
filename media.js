@@ -1,4 +1,4 @@
-/* Sloptical media checks. Looks for evidence that an image, GIF or video was made with AI:
+/* AI Asli media checks. Looks for evidence that an image, GIF or video was made with AI:
    Content Credentials (C2PA) and IPTC "digital source type" labels, generator metadata
    (Stable Diffusion, ComfyUI, Midjourney, DALL·E, Firefly and others), links to AI image
    services, and "AI-generated" labels near the media. It cannot see invisible watermarks,
@@ -44,7 +44,7 @@
   ];
   const CAMERA = /(Canon|NIKON|SONY|FUJIFILM|OLYMPUS|Panasonic|Leica|Apple\x00|iPhone|SAMSUNG|Google Pixel|HUAWEI|Xiaomi|OnePlus|GoPro|DJI)/;
   /* Image services that resize or re-compress images. Many keep the original's address inside
-     their own, so Sloptical can check the original file, which may still carry its AI labels. */
+     their own, so AI Asli can check the original file, which may still carry its AI labels. */
   function unwrap(url) {
     const out = [];
     try {
@@ -85,7 +85,7 @@
     const notes = [];
     if (p <= 50) {
       if (reencoded(url) && !original) notes.push("This site re-compresses images, which removes hidden AI labels, so only links, labels and size could be checked.");
-      else if (reencoded(url) && original) notes.push("The site re-compresses images, but Sloptical also checked the original file and found no AI labels.");
+      else if (reencoded(url) && original) notes.push("The site re-compresses images, but AI Asli also checked the original file and found no AI labels.");
       if (!bytes && !readable) notes.push("The file’s hidden details couldn’t be read. Turn on “Read image details” in Settings for a deeper check.");
       notes.push(why.length ? "No strong evidence found. Many AI images carry no labels, so this doesn’t mean it was made by a person." : "No evidence found. Many AI images carry no labels, so this doesn’t mean it was made by a person.");
     }

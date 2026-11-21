@@ -1,4 +1,4 @@
-/* Sloptical content script: scans text and media on the page you ask it to, highlights
+/* AI Asli content script: scans text and media on the page you ask it to, highlights
    likely AI-made content and explains why on hover. Nothing leaves your device except
    media files the extension downloads itself, if you allow it, to read their metadata. */
 (() => {
@@ -111,7 +111,7 @@
     const { j } = await judgeItem(it);
     if (el && j.score > state.settings.threshold && !el.dataset.sloptical) flagMedia(it, j);
     const flagged = j.score > state.settings.threshold, list = flagged ? j.reasons : [...j.reasons.map(r => `Weak sign only: ${r}`), ...j.notes];
-    toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${flagged ? band(j.score) : "n"}"></span><strong>${flagged ? j.score + "%" : j.reasons.length ? "No strong AI evidence" : "No AI evidence"}</strong><span>${flagged ? label(j.score) : "found in this " + kind}</span></div>${list.length ? `<ul>${list.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">${flagged ? "Based on the evidence found. Check the original source before sharing." : "Sloptical only reports evidence it can find. Click to close."}</p>`);
+    toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${flagged ? band(j.score) : "n"}"></span><strong>${flagged ? j.score + "%" : j.reasons.length ? "No strong AI evidence" : "No AI evidence"}</strong><span>${flagged ? label(j.score) : "found in this " + kind}</span></div>${list.length ? `<ul>${list.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">${flagged ? "Based on the evidence found. Check the original source before sharing." : "AI Asli only reports evidence it can find. Click to close."}</p>`);
     return j;
   }
   function addBadge(m) {
@@ -184,7 +184,7 @@
   function toast(html) { let t = document.querySelector(".sloptical-toast"); if (!t) { t = document.createElement("div"); t.className = "sloptical-ui sloptical-toast"; t.setAttribute("role", "status"); document.documentElement.appendChild(t); t.addEventListener("click", () => t.classList.remove("sloptical-show")); } t.innerHTML = html; t.classList.add("sloptical-show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("sloptical-show"), 10000); }
   function checkText(text) {
     const r = D.analyse(text || "");
-    if (r.tooShort) { toast(`<strong>Sloptical</strong> needs at least 25 words to judge. Select a longer passage.`); return r; }
+    if (r.tooShort) { toast(`<strong>AI Asli</strong> needs at least 25 words to judge. Select a longer passage.`); return r; }
     const ok = r.score <= 50;
     toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${ok ? "n" : band(r.score)}"></span><strong>${r.score}%</strong><span>${ok ? "Reads as human-written" : label(r.score)}</span></div><div class="sloptical-sub">${r.proportion}% of sentences read as AI-like</div>${r.reasons.length ? `<ul>${r.reasons.map(w => `<li>${w}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">A style estimate, not proof. Click to close.</p>`);
     return r;

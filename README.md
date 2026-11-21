@@ -1,8 +1,8 @@
-# Sloptical
+# AI Asli
 
-A Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs in your browser: no Sloptical servers, no accounts, no tracking.
+A Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs in your browser: no AI Asli servers, no accounts, no tracking.
 
-Made by [Compliscope Advisory](https://suhaimizainalshah.github.io/Compliscope-Advisory/) — independent AI compliance and governance support for the EU, Vietnam, South Korea and ASEAN.
+Made by [AI Benar Advisory](https://suhaimizainalshah.github.io/Compliscope-Advisory/) — independent AI compliance and governance support for the EU, Vietnam, South Korea and ASEAN.
 
 | Colour | Likelihood |
 |---|---|
@@ -17,8 +17,8 @@ Only items scoring **above 50%** are highlighted; you can raise the threshold in
 - **Hover explanations:** every highlight shows its likelihood and the top reasons, such as overused chatbot phrases, uniform sentence rhythm, "It's not just X, it's Y" templates, stacked "Moreover/Furthermore" openers, em-dash habits, or leftover chatbot text ("I hope this helps").
 - **Giveaway phrases underlined** inside flagged passages.
 - **Images, GIFs and videos:** flagged when there is evidence of AI generation: Content Credentials (C2PA) or IPTC "trained algorithmic media" labels, Stable Diffusion or ComfyUI settings, generator names in metadata (Midjourney, DALL·E, Firefly, Imagen, Flux and others), links to AI image services, typical generator image sizes, and "AI-generated" labels nearby. Camera details lower the score. Each flagged item gets a badge and hover reasons.
-- **Right-click any image or video** and choose *Check this image or video with Sloptical* for a detailed result, including what was checked when no evidence is found.
-- **Image services:** many sites (Substack, WordPress, Next.js sites, Cloudflare, Cloudinary and others) re-compress images, which removes hidden AI labels. Where the service keeps the original file's address, Sloptical checks the original too.
+- **Right-click any image or video** and choose *Check this image or video with AI Asli* for a detailed result, including what was checked when no evidence is found.
+- **Image services:** many sites (Substack, WordPress, Next.js sites, Cloudflare, Cloudinary and others) re-compress images, which removes hidden AI labels. Where the service keeps the original file's address, AI Asli checks the original too.
 - **Check writing:** paste any text, including your own draft, to see how AI-like it reads, the share of AI-like sentences, a sentence-by-sentence colour view, giveaway words with plain alternatives, and tips to make it sound like you. "Swap stock words" makes safe one-for-one replacements, with undo.
 - **Right-click** selected text to check just that passage.
 - **Weekly summary** of your scans, stored only on your device.
@@ -27,14 +27,14 @@ Only items scoring **above 50%** are highlighted; you can raise the threshold in
 
 ## Honest limits
 - **Text:** the score is a style estimate, not proof. No detector can reliably prove text is AI-written, and style signals also appear in formal writing and in writing by people using a second language. Don't use it as the sole basis for judging anyone.
-- **Media:** Sloptical only finds *evidence* AI media carries. Most AI images online have their metadata removed, and invisible watermarks such as SynthID can't be read by an extension, so "no evidence" doesn't mean human-made.
+- **Media:** AI Asli only finds *evidence* AI media carries. Most AI images online have their metadata removed, and invisible watermarks such as SynthID can't be read by an extension, so "no evidence" doesn't mean human-made.
 
 ## Try it locally (2 minutes)
 1. Download or clone this repository.
 2. Open `chrome://extensions` in Chrome.
 3. Turn on **Developer mode** (top right).
 4. Click **Load unpacked** and choose this folder.
-5. Pin Sloptical from the puzzle-piece menu and click it on any article.
+5. Pin AI Asli from the puzzle-piece menu and click it on any article.
 
 Works in Chrome, Edge, Brave, Arc and other Chromium browsers.
 
@@ -64,14 +64,14 @@ store/            Web Store screenshots, promo tile and listing text
 8. To update later, raise `version` in `manifest.json`, zip again and upload.
 
 ## Host the code on GitHub
-1. Create a public repository called `Sloptical`.
+1. Create a public repository called `ai-asli`.
 2. Upload every file in this folder (keep the `icons` folder).
 3. Optional: Releases → Draft a new release → attach the zip so people can install it with Load unpacked.
 
 ## Browsers and sites
 - **Browsers:** works in Google Chrome 111 or later and other Chromium browsers. Brave, Opera, Vivaldi and Arc can install it from the Chrome Web Store; Microsoft Edge can too, or you can also publish it on Edge Add-ons. Firefox and Safari need separate versions.
 - **Sites:** works on almost every website. Chrome doesn't let any extension run on its own pages (`chrome://`), the Chrome Web Store, other extensions' pages or its built-in PDF viewer. For files on your computer, turn on "Allow access to file URLs" in the extension's details.
-- **Embedded content:** Sloptical scans the main page. Content inside embedded frames from other sites, such as some comment boxes and ads, isn't scanned.
+- **Embedded content:** AI Asli scans the main page. Content inside embedded frames from other sites, such as some comment boxes and ads, isn't scanned.
 
 ## Licence
 MIT. Contributions to the phrase list and scoring rules are welcome.

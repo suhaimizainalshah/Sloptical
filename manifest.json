@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "Sloptical",
-  "short_name": "Sloptical",
+  "name": "AI Asli",
+  "short_name": "AI Asli",
   "version": "1.1.4",
   "description": "Highlights text, images and videos likely made with AI, explains why on hover, and checks your own writing. Runs on your device.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Scan this page with Sloptical",
+    "default_title": "Scan this page with AI Asli",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",

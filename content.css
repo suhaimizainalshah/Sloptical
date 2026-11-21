@@ -1,4 +1,4 @@
-/* Sloptical highlights: yellow (51-64%), translucent orange (65-79%), pink (80%+) */
+/* AI Asli highlights: yellow (51-64%), translucent orange (65-79%), pink (80%+) */
 .sloptical-y,.sloptical-o,.sloptical-p{border-radius:4px;box-decoration-break:clone;-webkit-box-decoration-break:clone;transition:background-color .2s;cursor:help}
 .sloptical-y{background-color:rgba(255,224,0,.30)!important;box-shadow:inset 3px 0 0 rgba(230,190,0,.9)}
 .sloptical-o{background-color:rgba(255,150,40,.28)!important;box-shadow:inset 3px 0 0 rgba(255,130,20,.95)}
