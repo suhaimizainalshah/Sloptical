@@ -2,6 +2,8 @@
 
 A Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs in your browser: no Sloptical servers, no accounts, no tracking.
 
+Made by [Compliscope Advisory](https://suhaimizainalshah.github.io/Compliscope-Advisory/) — independent AI compliance and governance support for the EU, Vietnam, South Korea and ASEAN.
+
 | Colour | Likelihood |
 |---|---|
 | Yellow | 51–64% (possibly AI) |

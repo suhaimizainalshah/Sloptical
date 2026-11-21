@@ -29,6 +29,8 @@ PRIVATE BY DESIGN
 
 Please note: Sloptical gives an estimate, not proof. People write like this too, especially formally or in a second language, and most AI images have their metadata removed.
 
+Need AI compliance support? Reach out at Compliscope Advisory: https://suhaimizainalshah.github.io/Compliscope-Advisory/
+
 ## Category
 Productivity (or Tools)
 
