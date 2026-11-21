@@ -112,9 +112,16 @@
       + (text.match(/(^|\. )(the result|the answer|the catch|the twist|the best part)\?\s/gi) || []).length;
     if (tmpl) { const v = Math.min(tmpl, 3) * .8; z += v; reasons.push({ w: v, text: "Template contrasts like “It’s not just X, it’s Y”" }); }
 
-    // 5. Em dash density.
-    const dashes = (text.match(/—/g) || []).length / n * 100;
-    if (dashes > 1.2) { const v = Math.min(dashes, 4) * .35; z += v; reasons.push({ w: v, text: "Heavy use of em dashes (—)" }); }
+    // 5. Em dash density — em dashes, spaced en dashes and "--" all do the
+    // same job in generated text; an unspaced en dash in "2020–2025" is a
+    // range and is not counted. The density floor (Math.max(n, 100)) means
+    // one or two dashes in a short piece do not move the score; it takes
+    // sustained use.
+    const dashCount = (text.match(/—/g) || []).length
+      + (text.match(/ – /g) || []).length
+      + (text.match(/--/g) || []).length;
+    const dashes = dashCount / Math.max(n, 100) * 100;
+    if (dashes > 1.2) { const v = Math.min(dashes, 4) * .35; z += v; reasons.push({ w: v, text: "Heavy use of em dashes (—) and spaced en dashes" }); }
 
     // 6. Hedged, balanced framing.
     const hedge = (lower.match(/\b(on the other hand|on one hand|it depends on|there are several|there are many|various factors|a variety of)\b/g) || []).length;
@@ -170,7 +177,20 @@
       if (pcv < .2 && pm > 40) { z += .5; reasons.push({ w: .5, text: "Paragraphs are all a similar length" }); }
     }
 
-    // 12. Signs of a human: personal detail, typos, informal punctuation.
+    // 12. Colon density: "Point: explanation" framing is a chatbot habit —
+    // but colons are ordinary in lists, times and headings, so times and
+    // URLs are stripped first and this only fires at a high density.
+    const noTime = text.replace(/\b\d{1,2}:\d{2}\b/g, " ").replace(/:\/\//g, " ");
+    const colonCount = (noTime.match(/:/g) || []).length;
+    if (colonCount >= 4 && colonCount / Math.max(n, 100) * 100 >= 2) { z += .4; reasons.push({ w: .4, text: "Many colons framing points (“X: explanation”)" }); }
+
+    // 13. Semicolon density: formal generated prose leans on them, but so
+    // does educated human writing — so this is deliberately tiny and only
+    // fires at a high density.
+    const semiCount = (text.match(/;/g) || []).length;
+    if (semiCount >= 4 && semiCount / Math.max(n, 100) * 100 >= 1.5) { z += .3; reasons.push({ w: .3, text: "Many semicolons in a short span" }); }
+
+    // 14. Signs of a human: personal detail, typos, informal punctuation.
     const human = (text.match(/\b(i|my|we|our)\b/gi) || []).length / n * 100;
     if (human > 3 && !art) z -= .5;
     if (/(\?\?|!!|\.\.\.\s*[a-z]|\blol\b|\bimo\b|\btbh\b)/i.test(text)) z -= .8;
@@ -207,7 +227,7 @@
     for (const [re] of ARTIFACTS) if (re.test(s)) z += 3.5;
     if (STARTERS.test(s)) z += 1.1;
     if (/\b(it('|’)s|this is) not (just |only )?[^.,;]{2,40}[,;—–-]+\s*(it('|’)s|but)\b/i.test(s) || /\bnot (just|only) [^.]{2,50}, but\b/i.test(s)) z += 1.3;
-    if ((s.match(/—/g) || []).length) z += .5;
+    if ((s.match(/—| – |--/g) || []).length) z += .5;
     if (/\b\w+, \w+,? and \w+\b/i.test(s) && n > 12) z += .4;
     return { s: Math.round(100 / (1 + Math.exp(-z))), hits: hit };
   }
@@ -223,7 +243,7 @@
     if (giveaways.length) tips.push("Swap stock phrases for plain words, or cut them. Most of them add length, not meaning.");
     if (rows.filter(r => STARTERS.test(r.text)).length >= 2) tips.push("Drop “Moreover”, “Furthermore” and “Additionally”. Let ideas follow on, or start a new paragraph.");
     if (/not (just|only)[^.]+, (but|it('|’)s)/i.test(text)) tips.push("Replace “It’s not just X, it’s Y” with a direct claim: say what it is.");
-    if ((text.match(/—/g) || []).length >= 2) tips.push("Use fewer em dashes. Full stops, commas or brackets often read more naturally.");
+    if ((text.match(/—| – |--/g) || []).length >= 2) tips.push("Use fewer em dashes. Full stops, commas or brackets often read more naturally.");
     if (!/\b\d/.test(text) && words(text).length > 60) tips.push("Add something specific: a number, a name, a date or an example only you would know.");
     if (!/\b(i|my|we|our)\b/i.test(text) && words(text).length > 60) tips.push("Where it fits, add your own view or experience (“I found…”, “In our school…”).");
     if (/\b(in conclusion|in summary|to sum up)\b/i.test(text)) tips.push("End on your strongest point instead of “In conclusion”.");
