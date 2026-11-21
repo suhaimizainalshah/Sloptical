@@ -1,4 +1,4 @@
-/* Sloptical service worker: badge, right-click checks, shortcut, media metadata, history, optional auto-scan. */
+/* AI Asli service worker: badge, right-click checks, shortcut, media metadata, history, optional auto-scan. */
 importScripts("media.js");
 const FILES = ["detector.js", "media.js", "content.js"];
 async function inject(tabId) {
@@ -16,9 +16,9 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   // Menus persist across updates, and onInstalled fires on update too:
   // clear first so an update does not log duplicate-id errors.
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({ id: "sloptical-check", title: "Check selected text with Sloptical", contexts: ["selection"] });
-    chrome.contextMenus.create({ id: "sloptical-media", title: "Check this image or video with Sloptical", contexts: ["image", "video"] });
-    chrome.contextMenus.create({ id: "sloptical-scan", title: "Scan this page with Sloptical", contexts: ["page", "image", "video"] });
+    chrome.contextMenus.create({ id: "sloptical-check", title: "Check selected text with AI Asli", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "sloptical-media", title: "Check this image or video with AI Asli", contexts: ["image", "video"] });
+    chrome.contextMenus.create({ id: "sloptical-scan", title: "Scan this page with AI Asli", contexts: ["page", "image", "video"] });
   });
   if (reason === "install") chrome.tabs.create({ url: "welcome.html" });
 });
@@ -53,7 +53,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (msg.type === "badge" && sender.tab?.id != null) {
     chrome.action.setBadgeText({ tabId: sender.tab.id, text: msg.count ? String(msg.count) : "" });
     chrome.action.setBadgeBackgroundColor({ tabId: sender.tab.id, color: msg.count ? "#D6336C" : "#2F855A" });
-    chrome.action.setTitle({ tabId: sender.tab.id, title: msg.count ? `Sloptical: ${msg.count} item${msg.count > 1 ? "s" : ""} flagged, page estimate ${msg.page ?? 0}%` : "Sloptical: nothing flagged" });
+    chrome.action.setTitle({ tabId: sender.tab.id, title: msg.count ? `AI Asli: ${msg.count} item${msg.count > 1 ? "s" : ""} flagged, page estimate ${msg.page ?? 0}%` : "AI Asli: nothing flagged" });
   }
   if (msg.type === "history") {
     chrome.storage.local.get({ history: [] }).then(({ history }) => {

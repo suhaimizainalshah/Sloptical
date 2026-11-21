@@ -1,4 +1,4 @@
-/* Sloptical popup */
+/* AI Asli popup */
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
 const D = globalThis.SlopticalDetector;
 const DEF = { threshold: 50, phrases: true, watch: true, media: true, auto: false, deep: false, skip: "" };
@@ -42,7 +42,7 @@ function show(st) {
   if (st.passages?.length) h += `<h3>Most AI-like passages</h3><div class="list">${st.passages.map(p => `<button class="item" data-focus="text" data-i="${p.i}"><span class="pill" style="background:${COL[band(p.score)]}">${p.score}%</span><span class="txt">${esc(p.excerpt)}…</span></button>`).join("")}</div>`;
   if (m.items?.length) h += `<h3>Images and videos</h3><div class="list">${m.items.map(x => `<button class="item mediaRow" data-focus="media" data-i="${x.i}">${x.thumb && !/^blob:/.test(x.thumb) ? `<img class="thumb" src="${esc(x.thumb)}" alt="">` : `<span class="thumb"></span>`}<span class="txt">${esc(x.reason)}</span><span class="pill" style="background:${COL[band(x.score)]}">${x.score}%</span></button>`).join("")}</div>`;
   if (m.checked && !m.flagged) h += `<p class="muted">No AI evidence in ${m.checked} image${m.checked > 1 ? "s" : ""} or video${m.checked > 1 ? "s" : ""}${m.stripped ? `. ${m.stripped} came through an image service that removes hidden AI labels, so they could only be checked partly` : ""}. Right-click any image to check it in detail.</p>`;
-  if (m.needPermission) h += `<div class="note"><span>For a deeper check of images, Sloptical can read their hidden details (like Content Credentials). <button class="ghost" id="grantDeep" style="margin-top:6px">Allow image details</button></span></div>`;
+  if (m.needPermission) h += `<div class="note"><span>For a deeper check of images, AI Asli can read their hidden details (like Content Credentials). <button class="ghost" id="grantDeep" style="margin-top:6px">Allow image details</button></span></div>`;
   if (st.flagged || m.flagged) h += `<p class="muted">Hover any highlight on the page to see why it was flagged.</p>`;
   h += `<div class="row"><button class="ghost" id="clearHere">Remove highlights</button><button class="ghost" id="rescan">Scan again</button></div>`;
   r.innerHTML = h; $("#scan").hidden = true;

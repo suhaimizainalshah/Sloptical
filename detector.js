@@ -1,4 +1,4 @@
-/* Sloptical detector: runs entirely in the browser. No text leaves the page.
+/* AI Asli detector: runs entirely in the browser. No text leaves the page.
    It scores writing for patterns common in AI-generated text. It is a likelihood
    estimate based on style, not proof: people write like this too. */
 (() => {

@@ -1,13 +1,13 @@
-# Chrome Web Store listing for Sloptical
+# Chrome Web Store listing for AI Asli
 
 ## Name
-Sloptical: AI Content Detector
+AI Asli: AI Content Detector
 
 ## Summary (132 characters max)
 Highlights writing, images and videos likely made with AI, explains why, and helps your writing sound more human. Private.
 
 ## Description
-Sloptical helps you spot AI slop on the web, and keep it out of your own writing.
+AI Asli helps you spot AI slop on the web, and keep it out of your own writing.
 
 HIGHLIGHTS ON ANY PAGE
 • Passages scoring above 50% are highlighted: yellow (possibly), orange (likely), pink (very likely).
@@ -17,19 +17,19 @@ HIGHLIGHTS ON ANY PAGE
 IMAGES, GIFS AND VIDEOS
 • Flags media with evidence of AI generation: Content Credentials (C2PA) and IPTC labels, Stable Diffusion and ComfyUI settings, generator names in metadata, AI image services, and “AI-generated” labels nearby.
 • Each flagged item gets a badge with its likelihood and reasons.
-• Right-click any image or video to check it in detail. Where a site re-compresses images, Sloptical also checks the original file.
+• Right-click any image or video to check it in detail. Where a site re-compresses images, AI Asli also checks the original file.
 
 CHECK YOUR OWN WRITING
 • Paste any text to see how AI-like it reads, what share of sentences give it away, and sentence-by-sentence colour coding.
 • Get plain-word alternatives and tips to make it sound more like you.
 
 PRIVATE BY DESIGN
-• Everything runs in your browser. No accounts, no tracking, no Sloptical servers.
+• Everything runs in your browser. No accounts, no tracking, no AI Asli servers.
 • By default it only reads a page when you click it.
 
-Please note: Sloptical gives an estimate, not proof. People write like this too, especially formally or in a second language, and most AI images have their metadata removed.
+Please note: AI Asli gives an estimate, not proof. People write like this too, especially formally or in a second language, and most AI images have their metadata removed.
 
-Need AI compliance support? Reach out at Compliscope Advisory: https://suhaimizainalshah.github.io/Compliscope-Advisory/
+Need AI compliance support? Reach out at AI Benar Advisory: https://suhaimizainalshah.github.io/Compliscope-Advisory/
 
 ## Category
 Productivity (or Tools)
