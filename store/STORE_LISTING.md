@@ -24,7 +24,7 @@ CHECK YOUR OWN WRITING
 • Get plain-word alternatives and tips to make it sound more like you.
 
 PRIVATE BY DESIGN
-• Everything runs on your device. No accounts, no tracking, no servers.
+• Everything runs in your browser. No accounts, no tracking, no Sloptical servers.
 • By default it only reads a page when you click it.
 
 Please note: Sloptical gives an estimate, not proof. People write like this too, especially formally or in a second language, and most AI images have their metadata removed.

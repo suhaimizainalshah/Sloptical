@@ -13,9 +13,13 @@ async function scanTab(tab) {
   try { await inject(tab.id); return await chrome.tabs.sendMessage(tab.id, { type: "scan", settings: s }); } catch (e) { return { error: String(e) }; }
 }
 chrome.runtime.onInstalled.addListener(({ reason }) => {
-  chrome.contextMenus.create({ id: "sloptical-check", title: "Check selected text with Sloptical", contexts: ["selection"] });
-  chrome.contextMenus.create({ id: "sloptical-media", title: "Check this image or video with Sloptical", contexts: ["image", "video"] });
-  chrome.contextMenus.create({ id: "sloptical-scan", title: "Scan this page with Sloptical", contexts: ["page", "image", "video"] });
+  // Menus persist across updates, and onInstalled fires on update too:
+  // clear first so an update does not log duplicate-id errors.
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({ id: "sloptical-check", title: "Check selected text with Sloptical", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "sloptical-media", title: "Check this image or video with Sloptical", contexts: ["image", "video"] });
+    chrome.contextMenus.create({ id: "sloptical-scan", title: "Scan this page with Sloptical", contexts: ["page", "image", "video"] });
+  });
   if (reason === "install") chrome.tabs.create({ url: "welcome.html" });
 });
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
@@ -58,7 +62,7 @@ chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   }
 });
 chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
-  if (info.status !== "complete" || !/^https?:/.test(tab.url || "")) return;
+  if (info.status !== "complete" || !/^(https?|file):/.test(tab.url || "")) return;
   const s = await settings(); if (!s.auto || !(await chrome.permissions.contains({ origins: ["<all_urls>"] }))) return;
   scanTab(tab);
 });

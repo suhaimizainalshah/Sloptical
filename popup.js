@@ -86,6 +86,9 @@ async function loadSettings() {
   const s = await chrome.storage.sync.get(DEF), has = await chrome.permissions.contains(ALL);
   $("#threshold").value = s.threshold; $("#thOut").textContent = s.threshold + "%"; ["phrases", "media", "watch"].forEach(k => ($("#" + k).checked = s[k]));
   $("#deep").checked = s.deep && has; $("#auto").checked = s.auto && has; $("#skip").value = s.skip;
+  // If the permission was revoked outside the popup, the stored values
+  // would otherwise stay true while the checkboxes show off.
+  if (!has && (s.deep || s.auto)) chrome.storage.sync.set({ deep: false, auto: false });
 }
 $("#threshold").oninput = e => ($("#thOut").textContent = e.target.value + "%");
 $("#threshold").onchange = e => chrome.storage.sync.set({ threshold: +e.target.value }).then(() => toast("Saved. Scan again to apply."));

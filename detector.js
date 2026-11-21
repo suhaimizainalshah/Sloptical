@@ -43,6 +43,28 @@
   const esc = s => s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const PH_RE = PHRASES.map(([p, w]) => [new RegExp(`\\b${esc(p)}\\b`, "gi"), w, p]);
 
+  // Match every stock phrase with its character span, then keep the longest
+  // match when spans overlap, so "in the realm of" is not also counted as
+  // "the realm of" and "realm".
+  function phraseHits(lower) {
+    const spans = [];
+    for (const [re, w, p] of PH_RE) {
+      re.lastIndex = 0;
+      let m;
+      while ((m = re.exec(lower)) !== null) {
+        spans.push({ start: m.index, end: m.index + m[0].length, w, p });
+        if (m[0].length === 0) re.lastIndex++;
+      }
+    }
+    spans.sort((a, b) => (b.end - b.start) - (a.end - a.start) || a.start - b.start);
+    const kept = [];
+    for (const s of spans) {
+      if (kept.some(t => s.start < t.end && t.start < s.end)) continue;
+      kept.push(s);
+    }
+    return kept;
+  }
+
   function score(text) {
     const W = words(text), n = W.length, reasons = [], hits = [];
     if (n < 25) return { score: 0, words: n, reasons: [], hits: [], tooShort: true };
@@ -52,10 +74,13 @@
     let art = 0; for (const [re, why] of ARTIFACTS) if (re.test(text)) { art++; reasons.push({ w: 3, text: why }); }
     z += Math.min(art, 2) * 3.2;
 
-    // 2. Stock phrase density.
+    // 2. Stock phrase density (overlapping spans counted once — see phraseHits).
+    // Density is phrases per 100 words, and the denominator never drops
+    // below 100: a single stock phrase in a 30-word passage is not the
+    // same evidence as the same rate sustained across a long text.
     let pw = 0; const found = new Map();
-    for (const [re, w, p] of PH_RE) { const m = lower.match(re); if (m) { pw += w * m.length; found.set(p, (found.get(p) || 0) + m.length); hits.push(p); } }
-    const density = pw / n * 100;
+    for (const s of phraseHits(lower)) { pw += s.w; found.set(s.p, (found.get(s.p) || 0) + 1); hits.push(s.p); }
+    const density = pw / Math.max(n, 100) * 100;
     if (density > 0) {
       z += Math.min(density, 6) * .55;
       const list = [...found.keys()].slice(0, 5).map(p => `“${p}”`).join(", ");
@@ -117,7 +142,7 @@
   };
   function sentenceScore(s) {
     const n = words(s).length || 1, low = s.toLowerCase(); let z = -2.2; const hit = [];
-    for (const [re, w, p] of PH_RE) { re.lastIndex = 0; const m = low.match(re); if (m) { z += w * m.length * 1.1; hit.push(p); } }
+    for (const s of phraseHits(low)) { z += s.w * 1.1; hit.push(s.p); }
     for (const [re] of ARTIFACTS) if (re.test(s)) z += 3.5;
     if (STARTERS.test(s)) z += 1.1;
     if (/\b(it('|’)s|this is) not (just |only )?[^.,;]{2,40}[,;—–-]+\s*(it('|’)s|but)\b/i.test(s) || /\bnot (just|only) [^.]{2,50}, but\b/i.test(s)) z += 1.3;
@@ -126,7 +151,7 @@
     return { s: Math.round(100 / (1 + Math.exp(-z))), hits: hit };
   }
   function analyse(text) {
-    const overall = score(text), S = sentences(text).length ? sentences(text) : [text.trim()];
+    const overall = score(text), S = text.trim() ? (sentences(text).length ? sentences(text) : [text.trim()]) : [];
     const rows = S.map(t => ({ text: t, ...sentenceScore(t) }));
     const flagged = rows.filter(r => r.s >= 50).length, proportion = rows.length ? Math.round(flagged / rows.length * 100) : 0;
     const counts = new Map(); rows.forEach(r => r.hits.forEach(h => counts.set(h, (counts.get(h) || 0) + 1)));
@@ -150,13 +175,16 @@
     meticulous: "careful", meticulously: "carefully", bustling: "busy", vibrant: "lively", foster: "build", fosters: "builds", fostering: "building",
     empower: "help", empowers: "helps", empowering: "helping", streamline: "simplify", unparalleled: "unmatched", moreover: "also", furthermore: "also",
     additionally: "also", "game-changer": "big change", "state-of-the-art": "modern", transformative: "major", intricate: "detailed" };
+  // Words spelled with a vowel letter but pronounced with a consonant /j/ sound,
+  // so "a use", not "an use".
+  const AN_EXCEPT = new Set(["use", "uses", "using"]);
   function swapWords(text) {
     let out = text, n = 0;
     for (const k of Object.keys(SAFE).sort((a, b) => b.length - a.length)) {
-      out = out.replace(new RegExp(`\\b${esc(k)}\\b`, "gi"), m => { n++; const r = SAFE[k]; return m[0] === m[0].toUpperCase() ? r[0].toUpperCase() + r.slice(1) : r; });
+      out = out.replace(new RegExp(`\\b${esc(k)}\\b`, "gi"), m => { n++; const r = SAFE[k]; if (m === m.toUpperCase() && m.length > 1) return r.toUpperCase(); return m[0] === m[0].toUpperCase() ? r[0].toUpperCase() + r.slice(1) : r; });
     }
     const vals = [...new Set(Object.values(SAFE))].map(v => esc(v.split(" ")[0])).join("|");
-    out = out.replace(new RegExp(`\\b(a|an)\\s+(${vals})\\b`, "gi"), (m, art, w) => { const an = /^[aeiou]/i.test(w); const fixed = an ? "an" : "a"; return (art[0] === art[0].toUpperCase() ? fixed[0].toUpperCase() + fixed.slice(1) : fixed) + " " + w; });
+    out = out.replace(new RegExp(`\\b(a|an)\\s+(${vals})\\b`, "gi"), (m, art, w) => { const an = /^[aeiou]/i.test(w) && !AN_EXCEPT.has(w.toLowerCase()); const fixed = an ? "an" : "a"; return (art[0] === art[0].toUpperCase() ? fixed[0].toUpperCase() + fixed.slice(1) : fixed) + " " + w; });
     return { text: out, changes: n };
   }
   globalThis.SlopticalDetector = { score, analyse, swapWords, PHRASES: PHRASES.map(p => p[0]) };

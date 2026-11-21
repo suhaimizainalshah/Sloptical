@@ -14,7 +14,7 @@
     [/\b(ai[-_]?generated|aigenerated|midjourney|dall[-_]?e|stable[-_]?diffusion|sdxl|flux[-_]?(dev|pro|schnell))\b/i, "the file name"],
   ];
   const LABEL = /\b(ai[- ]generated|generated (with|by|using) (ai|midjourney|dall[- ·]?e|stable diffusion|firefly|chatgpt|gemini|imagen|sora|flux)|made with ai|ai info|ai art|ai image|ai video|created (with|using) (ai|midjourney|dall[- ·]?e|stable diffusion|firefly|sora|runway)|#aiart|#midjourney|#aigenerated|synthetic (content|image|media)|altered or synthetic|digitally (created|generated))\b/i;
-  const GEN_SIZES = new Set(["1024x1024", "1792x1024", "1024x1792", "512x512", "768x768", "1536x1536", "2048x2048", "1344x768", "768x1344", "1216x832", "832x1216", "1152x896", "896x1152", "1536x640", "640x1536", "1456x816", "816x1456", "2912x1632", "1232x928", "928x1232", "1664x928", "928x1664"]);
+  const GEN_SIZES = new Set(["1792x1024", "1024x1792", "768x768", "1536x1536", "2048x2048", "1344x768", "768x1344", "1216x832", "832x1216", "1152x896", "896x1152", "1536x640", "640x1536", "1456x816", "816x1456", "2912x1632", "1232x928", "928x1232", "1664x928", "928x1664"]);
   const META = [
     [/trainedAlgorithmicMedia/, 97, "Content Credentials or IPTC metadata say it was created by AI"],
     [/compositeWithTrainedAlgorithmicMedia/, 82, "Metadata says it was edited with AI"],
