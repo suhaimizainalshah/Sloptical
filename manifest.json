@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Sloptical",
   "short_name": "Sloptical",
-  "version": "1.1.3",
+  "version": "1.1.4",
   "description": "Highlights text, images and videos likely made with AI, explains why on hover, and checks your own writing. Runs on your device.",
   "action": {
     "default_popup": "popup.html",
