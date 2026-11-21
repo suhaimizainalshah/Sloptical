@@ -91,7 +91,7 @@
   }
   async function judgeItem(it) {
     const rb = await readBytes(it.url, it.kind === "video");
-    return { rb, j: MD.judge({ url: it.url, label: nearbyLabel(it.el), w: it.w, h: it.h, kind: it.kind, bytes: rb.bytes, original: rb.original, readable: rb.readable }) };
+    return { rb, j: MD.judge({ url: it.url, label: nearbyLabel(it.el), alt: it.el.alt || it.el.title || it.el.getAttribute("data-alt") || "", w: it.w, h: it.h, kind: it.kind, bytes: rb.bytes, original: rb.original, readable: rb.readable }) };
   }
   async function scanMedia() {
     const items = mediaItems(); let checked = 0, flagged = 0, needPermission = false, stripped = 0;

@@ -22,6 +22,10 @@
     ["landscape", 1], ["journey", 1], ["realm", 1], ["beacon of", 2], ["symphony of", 2], ["treasure trove", 2], ["rich tapestry", 2],
     ["not only", 1], ["moreover", 1], ["furthermore", 1], ["additionally", 1], ["notably", 1], ["ultimately", 1],
     ["in essence", 1], ["essentially", 1], ["arguably", 1], ["indelible", 2], ["profound", 1], ["commendable", 1], ["noteworthy", 1],
+    ["ever-evolving landscape", 2], ["at its core", 1], ["nestled", 1], ["unlock", 1], ["unleash", 1], ["in a world where", 1],
+    ["in today's digital age", 2], ["in today’s digital age", 2], ["when it comes to", 1], ["sheds light on", 1], ["a wide range of", 1],
+    ["it goes without saying", 1], ["at the forefront of", 2], ["paving the way", 1], ["cutting edge", 1], ["state of the art", 1],
+    ["dive in", 1], ["embarking on", 1],
   ];
   // Things that usually mean text was pasted from a chatbot.
   const ARTIFACTS = [
@@ -35,6 +39,9 @@
     [/\bregenerate (response|answer)\b/i, "Interface text from a chatbot"],
     [/\*\*[^*]{2,40}\*\*:/, "Leftover markdown bold labels (**Label**:)"],
     [/\bfeel free to (ask|reach out|let me know)\b/i, "Chatbot-style offer (“Feel free to ask”)"],
+    [/(^|\n)\s*(certainly|of course|absolutely)!\s/i, "Chatbot opener (“Certainly!”)"],
+    [/\blet me know if (you('|’)d like|there('|’)s anything else)\b/i, "Chatbot sign-off (“Let me know if you’d like…”)"],
+    [/\b(happy|glad) to help\b/i, "Chatbot sign-off (“Happy to help”)"],
   ];
   const STARTERS = /^(moreover|furthermore|additionally|in addition|overall|ultimately|importantly|notably|in conclusion|in summary|consequently|thus|however),?\s/i;
 
@@ -113,7 +120,57 @@
     const hedge = (lower.match(/\b(on the other hand|on one hand|it depends on|there are several|there are many|various factors|a variety of)\b/g) || []).length;
     if (hedge >= 2) { z += .6; reasons.push({ w: .6, text: "Evenly balanced, hedged framing (“On the other hand…”)" }); }
 
-    // 7. Signs of a human: personal detail, typos, informal punctuation.
+    // 7. Repetition: the same wordings and sentence openings come up again.
+    // Quoted passages are stripped first, so a line quoted twice (common in
+    // journalism) does not count as the writer repeating themselves. Straight
+    // single quotes are NOT stripped: they are usually possessives. Only
+    // mid-sentence 4-grams count, so names and titles that journalism
+    // repeats ("Press Gazette", "the Supply Chainer") do not trigger it, and
+    // it fires on the repetition *rate*: a long article naturally restates
+    // its topic, so the signal needs several distinct repeats in a short span.
+    const unquoted = text.replace(/"[^"]{2,200}"/g, " ").replace(/“[^”]{2,200}”/g, " ").replace(/‘[^’]{2,200}’/g, " ");
+    const uwords = unquoted.match(/[A-Za-zÀ-ÿ'’-]+/g) || [];
+    const seen4 = new Map();
+    for (let i = 0; i + 4 <= uwords.length; i++) {
+      const g = uwords.slice(i, i + 4);
+      if (g.some(w => /^[A-ZÀ-Þ]/.test(w))) continue;
+      const key = g.join(" ").toLowerCase();
+      seen4.set(key, (seen4.get(key) || 0) + 1);
+    }
+    const repeats = [...seen4.values()].filter(c => c >= 2).length;
+    if (repeats >= 3 && repeats / Math.max(n, 100) * 100 >= 1.5) { z += .5; reasons.push({ w: .5, text: "Repeated phrases — the same wordings come up again and again" }); }
+    if (S.length >= 5) {
+      const firsts = S.map(s => (s.replace(/^[^A-Za-z]+/, "").split(/\s+/)[0] || "").toLowerCase());
+      const fc = new Map(); for (const f of firsts) fc.set(f, (fc.get(f) || 0) + 1);
+      if (Math.max(...fc.values()) / S.length >= .4) { z += .5; reasons.push({ w: .5, text: "Most sentences start with the same word" }); }
+    }
+
+    // 8. Hedging density: modal hedges pile up in generated drafts.
+    const hedges = (lower.match(/\b(may|might|could|possibly|perhaps|potentially)\b/g) || []).length + (lower.match(/\bin some cases\b/g) || []).length;
+    if (hedges / Math.max(n, 100) * 100 >= 1.2) { z += .6; reasons.push({ w: .6, text: "Heavy hedging (“may”, “might”, “could”, “potentially”)" }); }
+
+    // 9. Almost no contractions in a long text. Formal AI drafts rarely use
+    // them — but journalism and academic writing often don't either, so this
+    // is deliberately small.
+    if (n >= 300) {
+      const contr = (text.match(/\w+n't\b|\w+('re|'ve|'ll|'d|'m)\b|\b(it's|that's|there's|here's|what's|let's)\b/gi) || []).length;
+      if (contr / n * 100 < .1) { z += .3; reasons.push({ w: .3, text: "Almost no contractions in a long text" }); }
+    }
+
+    // 10. Guide-style structural tells: headings that read like content-farm furniture.
+    const struct = (text.match(/^(key takeaways|the bottom line|tl;dr|in summary|the ultimate guide to|everything you need to know about|what this means for you)\b/gim) || []).length;
+    if (struct) { const v = Math.min(struct, 2) * .5; z += v; reasons.push({ w: v, text: "“Key takeaways” / guide-style headings" }); }
+
+    // 11. Paragraph-length uniformity: the same burstiness idea as sentences.
+    // The threshold is tight (CV under 0.20): edited journalism also runs to
+    // fairly even paragraphs, so only near-identical lengths count.
+    const paras = text.split(/\n\s*\n/).map(p => words(p).length).filter(l => l >= 5);
+    if (paras.length >= 4) {
+      const pm = paras.reduce((a, b) => a + b, 0) / paras.length, psd = Math.sqrt(paras.reduce((a, b) => a + (b - pm) ** 2, 0) / paras.length), pcv = psd / pm;
+      if (pcv < .2 && pm > 40) { z += .5; reasons.push({ w: .5, text: "Paragraphs are all a similar length" }); }
+    }
+
+    // 12. Signs of a human: personal detail, typos, informal punctuation.
     const human = (text.match(/\b(i|my|we|our)\b/gi) || []).length / n * 100;
     if (human > 3 && !art) z -= .5;
     if (/(\?\?|!!|\.\.\.\s*[a-z]|\blol\b|\bimo\b|\btbh\b)/i.test(text)) z -= .8;
@@ -139,6 +196,10 @@
     "additionally": "also", "in conclusion": "", "in summary": "", "it's important to note": "", "it’s important to note": "", "it is important to note": "",
     "it's worth noting": "", "it’s worth noting": "", "in today's fast-paced": "in today’s", "in today’s fast-paced": "in today’s", "ever-evolving": "changing",
     "nuanced": "subtle", "notably": "", "ultimately": "in the end", "essentially": "", "in essence": "", "profound": "deep", "noteworthy": "notable",
+    "at its core": "at heart", "nestled": "tucked away", "unlock": "open", "unleash": "release", "ever-evolving landscape": "changing field",
+    "in a world where": "", "when it comes to": "for", "sheds light on": "explains", "a wide range of": "many", "it goes without saying": "",
+    "at the forefront of": "leading", "paving the way": "leading to", "cutting edge": "new", "state of the art": "modern", "dive in": "start",
+    "embarking on": "starting", "in today's digital age": "today", "in today’s digital age": "today",
   };
   function sentenceScore(s) {
     const n = words(s).length || 1, low = s.toLowerCase(); let z = -2.2; const hit = [];
@@ -174,7 +235,8 @@
     "cutting-edge": "new", "ever-evolving": "changing", multifaceted: "complex", pivotal: "key", paramount: "essential", showcasing: "showing",
     meticulous: "careful", meticulously: "carefully", bustling: "busy", vibrant: "lively", foster: "build", fosters: "builds", fostering: "building",
     empower: "help", empowers: "helps", empowering: "helping", streamline: "simplify", unparalleled: "unmatched", moreover: "also", furthermore: "also",
-    additionally: "also", "game-changer": "big change", "state-of-the-art": "modern", transformative: "major", intricate: "detailed" };
+    additionally: "also", "game-changer": "big change", "state-of-the-art": "modern", transformative: "major", intricate: "detailed",
+    "nestled": "tucked away", "unlock": "open", "unleash": "release", "at its core": "at heart" };
   // Words spelled with a vowel letter but pronounced with a consonant /j/ sound,
   // so "a use", not "an use".
   const AN_EXCEPT = new Set(["use", "uses", "using"]);
