@@ -20,13 +20,16 @@
     const set = new Set(); let n;
     while ((n = tw.nextNode())) { let el = n.parentElement.closest(BLOCK); while (el && el.tagName === "SPAN" && el.parentElement) { const up = el.parentElement.closest(BLOCK); if (!up) break; el = up; if (el.tagName !== "SPAN") break; } if (el) set.add(el); }
     const blocks = [...set].filter(visible);
-    return blocks.filter(el => !blocks.some(o => o !== el && el.contains(o) && wordCount(o) >= 25));
+    // Count words once per block: the nesting filter below would otherwise
+    // re-read innerText (a forced layout) for every containing pair.
+    const counts = new Map(blocks.map(el => [el, wordCount(el)]));
+    return blocks.filter(el => !blocks.some(o => o !== el && el.contains(o) && counts.get(o) >= 25));
   }
   function clear() {
     state.marks.forEach(m => m.parentNode && m.replaceWith(document.createTextNode(m.textContent))); state.marks = [];
     document.querySelectorAll("[data-sloptical]").forEach(el => { el.classList.remove("sloptical-y", "sloptical-o", "sloptical-p", "sloptical-flash"); delete el.dataset.sloptical; delete el.dataset.slopticalWhy; delete el.dataset.slopticalKind; });
     state.media.forEach(m => { m.el.style.outline = m.prevOutline; m.el.style.outlineOffset = m.prevOffset; m.badge?.remove(); }); state.media = [];
-    state.flagged = []; hideTip(); document.body?.normalize?.();
+    state.flagged = []; state.lastStats = null; hideTip(); document.body?.normalize?.();
   }
   function markPhrases(el, hits) {
     if (!hits.length) return;
@@ -107,7 +110,7 @@
     const it = { el: el || document.body, kind, url, w: el?.naturalWidth || el?.videoWidth || 0, h: el?.naturalHeight || el?.videoHeight || 0 };
     const { j } = await judgeItem(it);
     if (el && j.score > state.settings.threshold && !el.dataset.sloptical) flagMedia(it, j);
-    const flagged = j.score > 50, list = flagged ? j.reasons : [...j.reasons.map(r => `Weak sign only: ${r}`), ...j.notes];
+    const flagged = j.score > state.settings.threshold, list = flagged ? j.reasons : [...j.reasons.map(r => `Weak sign only: ${r}`), ...j.notes];
     toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${flagged ? band(j.score) : "n"}"></span><strong>${flagged ? j.score + "%" : j.reasons.length ? "No strong AI evidence" : "No AI evidence"}</strong><span>${flagged ? label(j.score) : "found in this " + kind}</span></div>${list.length ? `<ul>${list.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">${flagged ? "Based on the evidence found. Check the original source before sharing." : "Sloptical only reports evidence it can find. Click to close."}</p>`);
     return j;
   }
@@ -126,11 +129,12 @@
       stopWatch(); clear();
       let scanned = 0, words = 0, weighted = 0;
       for (const el of collectBlocks()) {
-        const r = D.score((el.innerText || "").slice(0, 6000)); if (r.tooShort) continue;
+        const text = el.innerText || "";
+        const r = D.score(text.slice(0, 6000)); if (r.tooShort) continue;
         scanned++; words += r.words; weighted += r.score * r.words;
         if (r.score > state.settings.threshold) {
           el.dataset.sloptical = r.score; el.dataset.slopticalWhy = JSON.stringify(r.reasons); el.dataset.slopticalKind = "text"; el.classList.add("sloptical-" + band(r.score));
-          state.flagged.push({ el, score: r.score, excerpt: (el.innerText || "").replace(/\s+/g, " ").trim().slice(0, 110) }); if (state.settings.phrases) markPhrases(el, r.hits);
+          state.flagged.push({ el, score: r.score, excerpt: text.replace(/\s+/g, " ").trim().slice(0, 110) }); if (state.settings.phrases) markPhrases(el, r.hits);
         }
       }
       const media = state.settings.media ? await scanMedia() : { checked: 0, flagged: 0, needPermission: false };
@@ -155,8 +159,9 @@
   /* ---------- hover explanation ---------- */
   let tip = null, tipFor = null;
   function showTip(el, x, y) {
-    if (!tip) { tip = document.createElement("div"); tip.className = "sloptical-ui sloptical-tip"; tip.setAttribute("role", "tooltip"); document.documentElement.appendChild(tip); }
+    if (!tip) { tip = document.createElement("div"); tip.id = "sloptical-tip"; tip.className = "sloptical-ui sloptical-tip"; tip.setAttribute("role", "tooltip"); document.documentElement.appendChild(tip); }
     if (tipFor !== el) {
+      el.setAttribute("aria-describedby", "sloptical-tip");
       const s = +el.dataset.sloptical, why = JSON.parse(el.dataset.slopticalWhy || "[]"), kind = el.dataset.slopticalKind || "text";
       const what = kind === "text" ? "this passage was written by AI" : `this ${kind === "gif" ? "GIF" : kind} was made with AI`;
       tip.innerHTML = `<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${band(s)}"></span><strong>${s}%</strong><span>${label(s)}</span></div><div class="sloptical-sub">Likelihood ${what}</div>${why.length ? `<ul>${why.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">${kind === "text" ? "A style estimate, not proof. Careful writers and people writing in a second language can trigger these signals too." : "Based on the evidence found. Check the original source before sharing."}</p>`;
@@ -165,7 +170,7 @@
     const pad = 14; tip.classList.add("sloptical-show"); const w = tip.offsetWidth, h = tip.offsetHeight;
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x + pad)) + "px"; tip.style.top = (y + pad + h > innerHeight ? Math.max(8, y - h - pad) : y + pad) + "px";
   }
-  function hideTip() { tip?.classList.remove("sloptical-show"); tipFor = null; }
+  function hideTip() { tipFor?.removeAttribute("aria-describedby"); tip?.classList.remove("sloptical-show"); tipFor = null; }
   document.addEventListener("mousemove", e => { const el = e.target.closest?.("[data-sloptical]"); if (el) showTip(el, e.clientX, e.clientY); else if (tipFor) hideTip(); }, { passive: true });
   document.addEventListener("focusin", e => { const el = e.target.closest?.("[data-sloptical]"); if (el) { const r = el.getBoundingClientRect(); showTip(el, r.left, r.bottom); } });
   addEventListener("scroll", hideTip, { passive: true });

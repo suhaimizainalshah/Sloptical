@@ -1,6 +1,6 @@
 # Sloptical
 
-A Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs on your device: no servers, no accounts, no tracking.
+A Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs in your browser: no Sloptical servers, no accounts, no tracking.
 
 | Colour | Likelihood |
 |---|---|
@@ -53,7 +53,7 @@ store/            Web Store screenshots, promo tile and listing text
 
 ## Publish on the Chrome Web Store
 1. **Register as a developer** at the Chrome Web Store Developer Dashboard with your Google account and pay the one-time registration fee.
-2. **Zip the extension**: use the ready-made `sloptical-extension.zip`, or select the extension files (everything except `store/`, `README.md` and `LICENSE`) and compress them so `manifest.json` sits at the top of the zip.
+2. **Zip the extension**: select the extension files (everything except `store/`, `README.md` and `LICENSE`) and compress them so `manifest.json` sits at the top of the zip.
 3. In the dashboard, click **New item** and upload the zip.
 4. **Store listing**: copy the name, summary, description and permission reasons from `store/STORE_LISTING.md`, and upload the three 1280×800 screenshots and the 440×280 promo tile from `store/`.
 5. **Privacy practices**: state the single purpose ("highlights likely AI-generated writing on web pages"), justify each permission (wording is in `privacy.html`), and declare that you collect no user data.
@@ -62,7 +62,7 @@ store/            Web Store screenshots, promo tile and listing text
 8. To update later, raise `version` in `manifest.json`, zip again and upload.
 
 ## Host the code on GitHub
-1. Create a public repository called `sloptical`.
+1. Create a public repository called `Sloptical`.
 2. Upload every file in this folder (keep the `icons` folder).
 3. Optional: Releases → Draft a new release → attach the zip so people can install it with Load unpacked.
 
