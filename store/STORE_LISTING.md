@@ -47,4 +47,4 @@ Highlights content on web pages that is likely AI-generated and explains why.
 Does not collect or transmit any user data.
 
 ## Privacy policy URL
-https://github.com/suhaimizainalshah/Sloptical/blob/main/privacy.html
+https://github.com/suhaimizainalshah/ai-asli/blob/main/privacy.html
