@@ -38,7 +38,13 @@ footer{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;color:var(--mute
 .builder textarea,.builder input,.builder select{width:100%;font:inherit;font-size:.9em;padding:.5em .7em;border-radius:10px;border:2px solid var(--line);background:var(--bg);color:var(--ink)}.row{display:flex;gap:.6rem;flex-wrap:wrap;align-items:center}.row>*{flex:1}
 .list{display:grid;gap:.4em;font-size:.9em}.list div{display:flex;gap:.6em;align-items:center;border-bottom:1px solid var(--line);padding:.3em 0}.list img{width:64px;height:44px;object-fit:cover;border-radius:6px}
 .final{text-align:center;display:grid;gap:1rem;justify-items:center}.final .score{font-size:clamp(60px,10vw,140px);font-weight:900;line-height:1}
-.small{font-size:.85em;color:var(--muted)}[hidden]{display:none!important}
+.small{font-size:.85em;color:var(--muted)}
+.bulk table{width:100%;border-collapse:collapse;font-size:.9em}
+.bulk th,.bulk td{border-bottom:1px solid var(--line);padding:.4em .5em;text-align:left;vertical-align:top}
+.bulk td.num,.bulk th.num{text-align:right;font-variant-numeric:tabular-nums}
+.bulk .flag{font-weight:700;color:var(--bad)}
+.bulk input[type=file]{min-width:260px}
+[hidden]{display:none!important}
 @media (prefers-reduced-motion:no-preference){.card,.reveal{animation:pop .25s ease}@keyframes pop{from{transform:translateY(8px);opacity:0}}}
 </style>
 </head>
@@ -479,7 +485,7 @@ function buildRounds() {
   if (S.mode === "clues") return shuffle(CLUES.map(c => ({ kind: "clue", c })));
   return shuffle(S.custom.map(x => ({ kind: x.type === "pair" ? "writing" : "picture", ...(x.type === "pair" ? (() => { const aiFirst = Math.random() < .5; return { w: { topic: x.topic || "Your round", human: x.human, ai: x.ai, src: x.src || "Added by the teacher", discuss: x.discuss || "" }, aiSide: aiFirst ? 0 : 1, texts: aiFirst ? [x.ai, x.human] : [x.human, x.ai] }; })() : { p: x }) })));
 }
-function render() { ({ start: renderStart, round: renderRound, final: renderFinal, build: renderBuilder })[S.screen || "start"](); $("#scorePill").textContent = `Class score ${S.score}`; }
+function render() { ({ start: renderStart, round: renderRound, final: renderFinal, build: renderBuilder, bulk: renderBulk })[S.screen || "start"](); $("#scorePill").textContent = `Class score ${S.score}`; }
 function renderStart() {
   $("#progress").textContent = "Ready";
   $("#main").innerHTML = `<section class="start"><h2>Can you spot the AI?</h2><p>Look closely, vote as a class, then see what AI Asli noticed. Wrong answers are part of the lesson: these tools can be fooled, and so can we.</p>
@@ -488,10 +494,10 @@ function renderStart() {
       <button class="mode" data-m="clues" aria-pressed="${S.mode === "clues"}"><b>Clue rounds</b><small>What does the evidence really tell us? Sometimes the answer is “Can’t tell”.</small></button>
       <button class="mode" data-m="custom" aria-pressed="${S.mode === "custom"}"><b>Your own rounds</b><small>${S.custom.length ? `${S.custom.length} round${S.custom.length > 1 ? "s" : ""} added` : "Add your own pictures or writing"}</small></button>
     </div>
-    <div class="row" style="justify-content:center;flex:none"><button class="btn primary big" id="go">Start</button><button class="btn" id="build">Add your own rounds</button></div>
+    <div class="row" style="justify-content:center;flex:none"><button class="btn primary big" id="go">Start</button><button class="btn" id="build">Add your own rounds</button><button class="btn" id="bulkBtn">Bulk check</button></div>
     <p class="small">Tip for the classroom: show this on a big screen. To use a Google Nest Hub or a TV with Google TV or Chromecast, open this page in Chrome and choose ⋮ → Cast → Cast tab.</p></section>`;
   $("#main").querySelectorAll("[data-m]").forEach(b => b.onclick = () => { S.mode = b.dataset.m; render(); });
-  $("#go").onclick = startGame; $("#build").onclick = () => { S.screen = "build"; render(); };
+  $("#go").onclick = startGame; $("#build").onclick = () => { S.screen = "build"; render(); }; $("#bulkBtn").onclick = () => { S.screen = "bulk"; render(); };
 }
 function startGame() { S.rounds = buildRounds(); if (!S.rounds.length) { S.screen = "build"; return render(); } S.i = 0; S.score = 0; S.screen = "round"; newRound(); }
 function newRound() { S.votes = [0, 0, 0, 0]; S.revealed = false; S.t = 30; clearInterval(tick); if (S.timer) tick = setInterval(() => { S.t--; const el = $("#timer"); if (el) { el.textContent = `${S.t}s`; el.classList.toggle("low", S.t <= 5); } if (S.t <= 0) { clearInterval(tick); reveal(); } }, 1000); render(); }
@@ -547,6 +553,46 @@ function renderBuilder() {
   $("#play").onclick = () => { S.mode = "custom"; startGame(); }; $("#back").onclick = () => { S.screen = "start"; render(); };
   $("#exp").onclick = () => { const a = document.createElement("a"); a.href = URL.createObjectURL(new Blob([JSON.stringify({ kind: "spot-the-ai-rounds", v: 1, rounds: S.custom })], { type: "application/json" })); a.download = "spot-the-ai-rounds.json"; a.click(); };
   $("#imp").onchange = async e => { try { const d = JSON.parse(await e.target.files[0].text()); if (d.kind !== "spot-the-ai-rounds") throw 0; S.custom = d.rounds.filter(x => x && (x.type === "pic" ? /^data:image\//.test(x.src) : x.human && x.ai)); renderBuilder(); } catch { alert("That isn’t a Spot the AI rounds file."); } };
+}
+/* ---------- bulk check: score a set of essays, download a CSV ---------- */
+let BULK = [];
+function verdictOf(b) {
+  if (b.tooShort) return "Too short to score";
+  return b.score >= 50 ? "Worth a closer look" : "No strong AI patterns";
+}
+function bulkTable() {
+  const flagged = BULK.filter(b => !b.tooShort && b.score >= 50).length;
+  const scored = BULK.filter(b => !b.tooShort).length;
+  return `<p class="small" style="margin:0">${BULK.length} essay${BULK.length > 1 ? "s" : ""} checked \u00b7 ${scored} scored \u00b7 ${flagged} worth a closer look. Scores are estimates, not proof.</p>
+  <table><thead><tr><th>File</th><th class="num">Words</th><th class="num">Score</th><th>Verdict</th><th>Top reason</th></tr></thead><tbody>
+  ${BULK.map(b => `<tr><td>${esc(b.name)}</td><td class="num">${b.words}</td><td class="num">${b.tooShort ? "\u2014" : b.score + "%"}</td><td class="${!b.tooShort && b.score >= 50 ? "flag" : ""}">${esc(verdictOf(b))}</td><td>${b.tooShort ? "Too short to score (under 25 words)" : esc(b.reason || "No strong AI patterns found.")}</td></tr>`).join("")}
+  </tbody></table>`;
+}
+function renderBulk() {
+  $("#progress").textContent = "Bulk check";
+  $("#main").innerHTML = `<section class="builder bulk"><h2 style="margin:0">Bulk check</h2>
+    <p class="small" style="margin:0">Choose several essays (.txt or .md). Each file is scored on its own, in your browser \u2014 nothing is uploaded. A score is an estimate, not proof: use it to start a conversation, never to accuse anyone.</p>
+    <div class="row"><input type="file" id="bulkFiles" accept=".txt,.md,text/plain,text/markdown" multiple aria-label="Choose essays to check" style="flex:2"><button class="btn" id="bulkCsv" ${BULK.length ? "" : "disabled"}>Download CSV</button><button class="btn" id="bulkClear" ${BULK.length ? "" : "disabled"}>Clear</button></div>
+    <div id="bulkOut">${BULK.length ? bulkTable() : `<p class="small">No essays yet. Pick files to begin.</p>`}</div>
+    <div class="row" style="flex:none"><button class="btn" id="bulkBack">Back</button></div></section>`;
+  $("#bulkFiles").onchange = async e => {
+    for (const f of e.target.files) {
+      const text = await f.text();
+      const r = D.score(text);
+      BULK.push({ name: f.name, words: r.words, score: r.score, tooShort: !!r.tooShort, reason: (r.reasons || [])[0] || "" });
+    }
+    renderBulk();
+  };
+  $("#bulkCsv").onclick = () => {
+    const q = v => `\"${String(v ?? "").replace(/\"/g, '""')}\"`;
+    const rows = [["File", "Words", "Score (%)", "Verdict", "Top reason"].map(q).join(",")];
+    for (const b of BULK) rows.push([b.name, b.words, b.tooShort ? "" : b.score, verdictOf(b), b.tooShort ? "Too short to score (under 25 words)" : b.reason].map(q).join(","));
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([rows.join("\r\n")], { type: "text/csv" }));
+    a.download = "ai-asli-bulk-check.csv"; a.click();
+  };
+  $("#bulkClear").onclick = () => { BULK = []; renderBulk(); };
+  $("#bulkBack").onclick = () => { S.screen = "start"; render(); };
 }
 /* ---------- controls ---------- */
 $("#fsBtn").onclick = () => document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen?.();
