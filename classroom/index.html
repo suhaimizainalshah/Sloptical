@@ -399,12 +399,19 @@ footer{display:flex;gap:.6rem;align-items:center;flex-wrap:wrap;color:var(--mute
     [/digitalsourcetype\/algorithmicallyEnhanced/, "Metadata says an algorithm enhanced it (such as background removal or noise reduction) but did not create it"],
     [/digitalsourcetype\/(minorHumanEdits|humanEdits)/, "Metadata says it was edited by a person"],
     [/digitalsourcetype\/(digitalCapture|computationalCapture)/, "Metadata says it was captured with a camera"],
+    [/digitalsourcetype\/compositeCapture\b/, "Metadata says it combines several camera photos"],
+    [/digitalsourcetype\/composite"/, "Metadata says it combines several pictures whose origins aren’t recorded"],
+    [/digitalsourcetype\/(digitalCreation|digitalArt)\b/, "Metadata says a person made it with non-generative digital tools"],
     [/CreatorTool="Little Light Lit"/, "Saved with Little Light Lit, which records any AI-assisted steps"],
   ];
   function inspectBytes(latin) {
-    const out = { hits: [], camera: false, c2pa: /c2pa|jumbf/i.test(latin), context: [], captured: /digitalsourcetype\/(digitalCapture|computationalCapture)/.test(latin) };
-    for (const [re, p, why] of META) if (re.test(latin)) out.hits.push({ p, why });
-    for (const [re, why] of CONTEXT) if (re.test(latin)) out.context.push(why);
+    const out = { hits: [], camera: false, c2pa: /c2pa|jumbf/i.test(latin), context: [], captured: /digitalsourcetype\/(digitalCapture|computationalCapture|compositeCapture)\b/.test(latin) };
+    // Score on the image's own label. Little Light Lit also records the labels of the pictures it combined
+    // (lll:SourceTypes, lll:OriginalSourceType): report those as an ingredient, without letting them override the image's own label.
+    const ingredients = (latin.match(/lll:(?:SourceTypes|OriginalSourceType)="([^"]{0,800})"/g) || []).join(" "), own = latin.replace(/lll:(?:SourceTypes|OriginalSourceType)="[^"]{0,800}"/g, "");
+    for (const [re, p, why] of META) if (re.test(own)) out.hits.push({ p, why });
+    for (const [re, why] of CONTEXT) if (re.test(own)) out.context.push(why);
+    if (/trainedAlgorithmicMedia|compositeSynthetic|algorithmicMedia/.test(ingredients) && !/digitalsourcetype\/trainedAlgorithmicMedia/.test(own)) out.context.push("Includes a picture labelled as made or edited by AI");
     const steps = latin.match(/lll:AIAssistedSteps="([^"]{1,200})"/); if (steps && steps[1] !== "none") out.context.push(`AI-assisted steps recorded: ${steps[1].replace(/[<>&]/g, "")}`);
     out.camera = CAMERA.test(latin) && /Exif/.test(latin);
     return out;

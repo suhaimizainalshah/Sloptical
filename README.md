@@ -14,6 +14,8 @@ Only items scoring **above 50%** are highlighted; you can raise the threshold in
 
 ## How images were made: context labels
 Besides evidence of AI generation, AI Asli reads the standard IPTC “digital source type” labels that explain how an image was made, and shows them as reasons without raising the AI score: **edited by a person**, **algorithmically enhanced** (such as background removal), and **captured with a camera** (which lowers the score). It also recognises images saved with **Little Light Lit**, which writes these labels honestly, lists any AI-assisted steps, and never removes an AI label that came with the original photo.
+Also recognised: *composite of real captures*, *composite of elements* and *digital creation*. A picture that contains an AI-generated element is scored on its own label (*edited with AI*), with the AI ingredient listed as a separate reason.
+
 
 ## Use it fairly
 AI Asli gives an **estimate from patterns, not proof**. Research has found that style-based detectors flag people writing in a second language, and very formal or templated writing, more often than others (Liang et al., 2023, *GPT detectors are biased against non-native English writers*, Patterns 4(7)). So:
