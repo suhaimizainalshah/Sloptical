@@ -16,17 +16,17 @@ chrome.runtime.onInstalled.addListener(({ reason }) => {
   // Menus persist across updates, and onInstalled fires on update too:
   // clear first so an update does not log duplicate-id errors.
   chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({ id: "sloptical-check", title: "Check selected text with AI Asli", contexts: ["selection"] });
-    chrome.contextMenus.create({ id: "sloptical-media", title: "Check this image or video with AI Asli", contexts: ["image", "video"] });
-    chrome.contextMenus.create({ id: "sloptical-scan", title: "Scan this page with AI Asli", contexts: ["page", "image", "video"] });
+    chrome.contextMenus.create({ id: "aiasli-check", title: "Check selected text with AI Asli", contexts: ["selection"] });
+    chrome.contextMenus.create({ id: "aiasli-media", title: "Check this image or video with AI Asli", contexts: ["image", "video"] });
+    chrome.contextMenus.create({ id: "aiasli-scan", title: "Scan this page with AI Asli", contexts: ["page", "image", "video"] });
   });
   if (reason === "install") chrome.tabs.create({ url: "welcome.html" });
 });
 chrome.contextMenus.onClicked.addListener(async (info, tab) => {
   if (!tab?.id) return;
   try { await inject(tab.id); } catch { return; }
-  if (info.menuItemId === "sloptical-check") chrome.tabs.sendMessage(tab.id, { type: "check", text: info.selectionText });
-  else if (info.menuItemId === "sloptical-media") chrome.tabs.sendMessage(tab.id, { type: "checkMedia", url: info.srcUrl });
+  if (info.menuItemId === "aiasli-check") chrome.tabs.sendMessage(tab.id, { type: "check", text: info.selectionText });
+  else if (info.menuItemId === "aiasli-media") chrome.tabs.sendMessage(tab.id, { type: "checkMedia", url: info.srcUrl });
   else scanTab(tab);
 });
 chrome.commands.onCommand.addListener(async cmd => { if (cmd !== "scan-page") return; const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); if (tab?.id) scanTab(tab); });
@@ -45,7 +45,7 @@ async function inspect(url, video) {
       while (size < max) { const { done, value } = await reader.read(); if (done) break; parts.push(value); size += value.length; }
       reader.cancel().catch(() => {}); buf = new Uint8Array(size); let o = 0; for (const p of parts) { buf.set(p.subarray(0, Math.min(p.length, size - o)), o); o += p.length; if (o >= size) break; }
     }
-    return { bytes: SlopticalMedia.inspectBytes(new TextDecoder("latin1").decode(buf)) };
+    return { bytes: AIAsliMedia.inspectBytes(new TextDecoder("latin1").decode(buf)) };
   } catch { return { bytes: null }; }
 }
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
