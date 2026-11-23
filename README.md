@@ -2,7 +2,7 @@
 
 A Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs in your browser: no AI Asli servers, no accounts, no tracking.
 
-Made by [AI Benar Advisory](https://suhaimizainalshah.github.io/Compliscope-Advisory/) — independent AI compliance and governance support for the EU, Vietnam, South Korea and ASEAN.
+Made by [AI Benar Advisory](https://suhaimizainalshah.github.io/AI-Benar-Advisory/) — independent AI compliance and governance support for the EU, Vietnam, South Korea and ASEAN.
 
 | Colour | Likelihood |
 |---|---|
@@ -11,6 +11,16 @@ Made by [AI Benar Advisory](https://suhaimizainalshah.github.io/Compliscope-Advi
 | Pink | 80% and above (very likely AI) |
 
 Only items scoring **above 50%** are highlighted; you can raise the threshold in Settings.
+
+## How images were made: context labels
+Besides evidence of AI generation, AI Asli reads the standard IPTC “digital source type” labels that explain how an image was made, and shows them as reasons without raising the AI score: **edited by a person**, **algorithmically enhanced** (such as background removal), and **captured with a camera** (which lowers the score). It also recognises images saved with **Little Light Lit**, which writes these labels honestly, lists any AI-assisted steps, and never removes an AI label that came with the original photo.
+
+## Use it fairly
+AI Asli gives an **estimate from patterns, not proof**. Research has found that style-based detectors flag people writing in a second language, and very formal or templated writing, more often than others (Liang et al., 2023, *GPT detectors are biased against non-native English writers*, Patterns 4(7)). So:
+- **Never use a score as the sole basis** for academic, employment or disciplinary decisions.
+- Treat a high score as a prompt for a conversation, not a verdict.
+- Remember that people edit AI drafts and AI edits human drafts: most writing is a mix.
+This notice appears with every writing check, in the welcome guide, and in the detector’s code.
 
 ## Features
 - **This page:** scan with one click or **Alt+Shift+S**. You get an overall score ring, counts by colour, and a list of the most AI-like passages and media; click any item to jump to it on the page.

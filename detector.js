@@ -1,6 +1,10 @@
 /* AI Asli detector: runs entirely in the browser. No text leaves the page.
    It scores writing for patterns common in AI-generated text. It is a likelihood
-   estimate based on style, not proof: people write like this too. */
+   estimate based on style, not proof: people write like this too.
+   Fairness: style-based detectors are known to flag non-native English writers, and very formal or
+   templated writing, more often than others (Liang et al., 2023, "GPT detectors are biased against
+   non-native English writers", Patterns 4(7)). Scores must never be the sole basis for academic,
+   employment or disciplinary decisions. Present them as a prompt for conversation, not a verdict. */
 (() => {
   if (globalThis.SlopticalDetector) return;
 

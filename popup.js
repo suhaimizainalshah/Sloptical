@@ -75,6 +75,7 @@ function checkWriting() {
   h += `<h3>Sentence by sentence</h3><div class="preview">${r.sentences.map(s => `<span class="${s.s >= 80 ? "sp" : s.s >= 65 ? "so" : s.s >= 50 ? "sy" : ""}" title="${s.s}% AI-like">${esc(s.text)}</span>`).join(" ")}</div>
     <div class="row"><button class="ghost" id="swap">Swap stock words</button><button class="ghost" id="undoSwap" ${lastBefore == null ? "hidden" : ""}>Undo swap</button><button class="ghost" id="copyTxt">Copy text</button></div>
     <p class="muted">Word swaps help a little. Rewriting in your own voice, with specific details, helps most.</p>`;
+    h += `<div class="card fair" role="note"><b>Use this fairly.</b> It’s an estimate from writing style, not proof. Tools like this flag people writing in a second language, and very formal writing, more often. Don’t use it as evidence of cheating or misconduct; talk to the writer instead.</div>`;
   out.innerHTML = h;
   $("#swap").onclick = () => { const s = D.swapWords($("#txt").value); if (!s.changes) return toast("No simple swaps found"); lastBefore = $("#txt").value; $("#txt").value = s.text; $("#txt").dispatchEvent(new Event("input")); checkWriting(); toast(`${s.changes} word${s.changes > 1 ? "s" : ""} swapped`); };
   $("#undoSwap").onclick = () => { if (lastBefore == null) return; $("#txt").value = lastBefore; lastBefore = null; $("#txt").dispatchEvent(new Event("input")); checkWriting(); };

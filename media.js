@@ -61,9 +61,20 @@
   }
   const REENCODES = /substackcdn\.com|\/cdn-cgi\/image\/|\/_next\/image|i[0-3]\.wp\.com|miro\.medium\.com|pbs\.twimg\.com|scontent|fbcdn\.net|cdninstagram|i\.ytimg\.com|googleusercontent\.com|media\.licdn\.com|imgix\.net|cloudinary\.com|images\.weserv\.nl|redd\.it|imgur\.com/i;
   const reencoded = url => REENCODES.test(url);
+  /* Context labels: they explain how an image was made without raising the AI score.
+     IPTC digital source types (http://cv.iptc.org/newscodes/digitalsourcetype/) and files saved with Little Light Lit,
+     which records any AI-assisted steps and never removes an AI label that came with the photo. */
+  const CONTEXT = [
+    [/digitalsourcetype\/algorithmicallyEnhanced/, "Metadata says an algorithm enhanced it (such as background removal or noise reduction) but did not create it"],
+    [/digitalsourcetype\/(minorHumanEdits|humanEdits)/, "Metadata says it was edited by a person"],
+    [/digitalsourcetype\/(digitalCapture|computationalCapture)/, "Metadata says it was captured with a camera"],
+    [/CreatorTool="Little Light Lit"/, "Saved with Little Light Lit, which records any AI-assisted steps"],
+  ];
   function inspectBytes(latin) {
-    const out = { hits: [], camera: false, c2pa: /c2pa|jumbf/i.test(latin) };
+    const out = { hits: [], camera: false, c2pa: /c2pa|jumbf/i.test(latin), context: [], captured: /digitalsourcetype\/(digitalCapture|computationalCapture)/.test(latin) };
     for (const [re, p, why] of META) if (re.test(latin)) out.hits.push({ p, why });
+    for (const [re, why] of CONTEXT) if (re.test(latin)) out.context.push(why);
+    const steps = latin.match(/lll:AIAssistedSteps="([^"]{1,200})"/); if (steps && steps[1] !== "none") out.context.push(`AI-assisted steps recorded: ${steps[1].replace(/[<>&]/g, "")}`);
     out.camera = CAMERA.test(latin) && /Exif/.test(latin);
     return out;
   }
@@ -73,6 +84,8 @@
       if (bytes.hits.length) { const top = bytes.hits.sort((a, b) => b.p - a.p)[0]; p = Math.max(p, top.p); why.push(top.why); bytes.hits.slice(1, 2).forEach(x => why.push(x.why)); }
       else if (bytes.c2pa) why.push("Has Content Credentials with no AI generation declared");
       if (bytes.camera && !bytes.hits.length) { p = Math.min(p, 8); why.push("Contains camera details (make or model)"); }
+      if (bytes.captured && !bytes.hits.length) p = Math.min(p, 8);
+      (bytes.context || []).forEach(c => { if (!why.includes(c)) why.push(c); });
     }
     for (const [re, name] of HOSTS) if (re.test(url)) { p = Math.max(p, name === "the file name" ? 72 : 86); why.push(name === "the file name" ? "The file name mentions AI generation" : `Comes from ${name}`); break; }
     if (LABEL.test(label)) { p = Math.max(p, 84); why.push("Labelled as AI-generated nearby"); }

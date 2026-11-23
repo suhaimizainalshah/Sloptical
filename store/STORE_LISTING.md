@@ -29,7 +29,7 @@ PRIVATE BY DESIGN
 
 Please note: AI Asli gives an estimate, not proof. People write like this too, especially formally or in a second language, and most AI images have their metadata removed.
 
-Need AI compliance support? Reach out at AI Benar Advisory: https://suhaimizainalshah.github.io/Compliscope-Advisory/
+Need AI compliance support? Reach out at AI Benar Advisory: https://suhaimizainalshah.github.io/AI-Benar-Advisory/
 
 ## Category
 Productivity (or Tools)
