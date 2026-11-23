@@ -12,6 +12,7 @@ Your settings are saved in Chrome’s sync storage so they follow you between yo
 
 - **activeTab** and **scripting**: to scan the page you are on, only when you click the extension, use the shortcut or right-click.
 - **storage**: to remember your settings.
+- **offscreen**: to run the official Content Credentials (C2PA) library in a hidden extension page, because it needs WebAssembly. It runs on your device. It reads the complete file only when the quick scan has found Content Credentials (up to 60 MB), never fetches credentials stored on other servers, and makes no certificate revocation lookups.
 - **contextMenus**: to add “Check selected text with AI Asli” to the right-click menu.
 - **Access to all sites (optional)**: requested only if you switch on “Read image details” or “Scan every page automatically”. With image details on, AI Asli downloads the first part of images and videos on the page you are scanning, directly from the site that hosts them, to read their metadata (such as Content Credentials). Nothing is sent to any other server. You can turn this off at any time.
 

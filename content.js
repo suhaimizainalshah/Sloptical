@@ -73,13 +73,28 @@
       return MD.inspectBytes(new TextDecoder("latin1").decode(buf));
     } catch { return null; }
   }
+  /* Content Credentials are verified against the WHOLE file. The extension fetches it when "Read image details"
+     is allowed; otherwise, if the site lets this page read the file, it is read here (up to 15 MB) and passed to the
+     verifier as data. Either way it stays on this device. */
+  async function verifyFull(u, video) {
+    const mime = video ? "video/mp4" : undefined;
+    let v = await ask({ type: "c2paVerify", url: u, mime });
+    if (v && !(v.ok === false && v.reason === "permission")) return v;
+    try {
+      const res = await fetch(u, { mode: "cors", credentials: "omit" }); if (!res.ok) return v;
+      const blob = await res.blob(); if (blob.size > 15 * 1024 * 1024) return { ok: false, reason: "too-large" };
+      const data = await new Promise(r => { const fr = new FileReader(); fr.onload = () => r(fr.result); fr.onerror = () => r(null); fr.readAsDataURL(blob); });
+      return data ? await ask({ type: "c2paVerify", url: data, mime: mime || blob.type || undefined }) : v;
+    } catch { return v; }
+  }
   async function readBytes(url, video) {
     const tries = [...MD.unwrap(url), url]; let merged = null, needPermission = false, original = false, readable = false;
     for (const u of tries) {
       if (!/^(https?|blob|data|chrome-extension):/.test(u)) continue;
       let b = await readDirect(u, video);
+      if (b?.c2pa && !b.verified) b.verified = await verifyFull(u, video); // full check of the credentials (see background.js)
       if (!b) { const r = await ask({ type: "inspect", url: u, video }); if (r?.needPermission) needPermission = true; b = r?.bytes || null; }
-      if (b) { readable = true; if (u !== url) original = true; if (!merged) merged = b; else { merged.hits.push(...b.hits); merged.c2pa ||= b.c2pa; merged.camera ||= b.camera; merged.captured ||= b.captured; merged.context.push(...(b.context || [])); if (b.c2paManifest?.present && (!merged.c2paManifest?.present || (!merged.c2paManifest.sourceType && b.c2paManifest.sourceType))) merged.c2paManifest = b.c2paManifest; } if (b.hits.length) break; }
+      if (b) { readable = true; if (u !== url) original = true; if (!merged) merged = b; else { merged.hits.push(...b.hits); merged.c2pa ||= b.c2pa; merged.verified ||= b.verified; merged.camera ||= b.camera; merged.captured ||= b.captured; merged.context.push(...(b.context || [])); if (b.c2paManifest?.present && (!merged.c2paManifest?.present || (!merged.c2paManifest.sourceType && b.c2paManifest.sourceType))) merged.c2paManifest = b.c2paManifest; } if (b.hits.length) break; }
     }
     return { bytes: merged, needPermission: needPermission && !readable, original, readable };
   }

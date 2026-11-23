@@ -19,6 +19,30 @@ Also recognised: *composite of real captures*, *composite of elements* and *digi
 When an image carries a Content Credentials (C2PA) manifest, AI Asli reads the manifest itself — not just the metadata string — and reports who signed it and what digital source type it declares (for example, created by AI, edited with AI, or captured with a camera). That claim is shown as a reason, with the signer named. The signature is **not** cryptographically verified, so a manifest is a claim about provenance, not proof: the score stays an estimate.
 
 
+## Content Credentials (C2PA): verified on your device
+Content Credentials are signed records, defined by the Coalition for Content Provenance and Authenticity (C2PA), that say how a file was made: by a camera, an editing app or an AI generator. AI Asli now **verifies** them with the official open-source C2PA library (`@contentauth/c2pa-web` 0.16.0, MIT), running in a hidden extension page because content scripts cannot run WebAssembly.
+
+**What it checks**
+- **The signature**, and that **the file still matches it**. A mismatch means the file was changed after signing, or the credentials were **copied from another file** (“provenance transference”). AI Asli then says the credentials can’t be trusted.
+- **Who signed it**, against a bundled copy of the **C2PA Conformance Program trust list** (`c2pa/trust/`, CC BY 4.0). Files signed by anyone else are shown as “signer not on the trust list”.
+- **What the credentials declare:** created by AI, edited with AI, includes AI-generated ingredients, or captured with a camera, plus the tool used and the edit actions. Verified declarations count for more than anything else AI Asli reads.
+- **Images and videos** (including MP4), on pages you scan and in **Check a file’s Content Credentials** in the popup, for files people send you.
+
+**Privacy:** everything runs on your device. AI Asli does **not** fetch credentials stored online (a file can point to a server; fetching would tell that server which file you are viewing), and it does **not** make certificate revocation (OCSP) lookups. To verify against the whole file, it reads the complete file, but only after the quick scan has found credentials, and only up to 60 MB (15 MB when read through the page).
+
+**What a result does not mean** (and the extension says so):
+- **No credentials is not evidence either way.** Many platforms strip them on upload, screenshots and re-saves remove them, and some tools exist specifically to remove them. Treating absence as suspicious only works where everyone keeps credentials, which is not today’s web.
+- **A valid signature is not proof the content is true.** It shows who signed it and that nothing changed since.
+- **Revocation is not checked**, and in the current specification the **timestamp is not covered by the signature**, so signing dates are the signer’s claim. Signed files can also **stop verifying when certificates expire**, without the file changing.
+- Invisible watermarks and fingerprints (“soft bindings”), which can survive metadata removal, are not checked.
+
+**Research this follows**
+- Golaszewski, Krawetz, Sherman, Zieglar and Matukumalli (2026), *Verifying Provenance of Digital Media: Security Analysis of C2PA and its Implementation*, IACR Cryptology ePrint Archive 2026/804 (University of Maryland, Baltimore County; Hacker Factor; National Security Agency), and the companion paper *Why the C2PA Specifications Fall Short*, arXiv:2604.24890: platforms remove credentials; timestamps can be replaced; many validators mishandle revocation; signed media can expire.
+- World Privacy Forum (2025), *Privacy, Identity and Trust in C2PA*: metadata stripping as the main obstacle, and privacy trade-offs of remote manifests.
+- Reviews of deepfake defences (for example, *A Review of Tools and Technologies to Combat Deepfakes*, Information 17(4):347, 2026) on manifest stripping and transference, and work on watermark robustness (arXiv:2603.12949) on combining signed metadata with in-content signals.
+
+**Maintenance:** on every update, refresh `c2pa/trust/*.pem` from the C2PA Conformance Program and check for a newer `@contentauth/c2pa-web` release at least two weeks old (see `c2pa/README.md`).
+
 ## Use it fairly
 AI Asli gives an **estimate from patterns, not proof**. Research has found that style-based detectors flag people writing in a second language, and very formal or templated writing, more often than others (Liang et al., 2023, *GPT detectors are biased against non-native English writers*, Patterns 4(7)). So:
 - **Never use a score as the sole basis** for academic, employment or disciplinary decisions.
@@ -64,6 +88,8 @@ background.js     badge, right-click menu, shortcut, media metadata, history, au
 popup.html/js     the toolbar panel: This page, Check writing, Settings
 welcome.html/js   first-run page with a live demo (demo/ holds its sample images)
 privacy.html      privacy policy
+c2pa/             Content Credentials verifier: hidden page, official C2PA library, C2PA trust lists
+classroom/        Spot the AI, a classroom game (self-contained)
 icons/            16, 32, 48 and 128 px icons
 store/            Web Store screenshots, promo tile and listing text
 ```

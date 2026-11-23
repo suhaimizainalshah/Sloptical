@@ -43,6 +43,8 @@ Highlights content on web pages that is likely AI-generated and explains why.
 - contextMenus: to add “Check selected text” and “Scan this page” to the right-click menu.
 - Optional host access (<all_urls>): only if the user turns on image details or automatic scanning; used to read image metadata and to scan pages without a click. No data is transmitted.
 
+- **offscreen:** runs the official open-source C2PA library (WebAssembly) in a hidden extension page to verify Content Credentials on the user’s device. No data is sent anywhere; credentials stored on remote servers are not fetched.
+
 ## Data usage disclosure
 Does not collect or transmit any user data.
 

@@ -114,3 +114,30 @@ $("#welcome").onclick = () => chrome.tabs.create({ url: "welcome.html" });
   const s = await chrome.storage.sync.get(DEF); try { if (s.skip && s.skip.split(/[\s,]+/).filter(Boolean).some(d => new URL(tab.url).hostname.endsWith(d))) { $("#scan").textContent = "Scan anyway (site is on your skip list)"; } } catch {}
   try { const st = await chrome.tabs.sendMessage(tab.id, { type: "stats" }); if (st) show(st); } catch {}
 })();
+
+/* ---------- Check a file's Content Credentials (verified on this device by c2pa/verify.js) ---------- */
+(() => {
+  const input = document.getElementById("ccFile"), out = document.getElementById("ccOut"); if (!input) return;
+  const e = t => String(t ?? "").replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const CAVEATS = '<ul><li>A valid signature shows who signed it and that the file hasn’t changed since. It doesn’t prove the content is true.</li><li>No credentials is not evidence either way: many sites strip them, and some tools exist to remove them.</li><li>Revocation isn’t checked (that needs an online lookup), and signing dates are the signer’s claim.</li></ul>';
+  input.onchange = async () => {
+    const f = input.files?.[0]; if (!f) return;
+    if (f.size > 60 * 1024 * 1024) { out.innerHTML = '<div class="cc-v cc-warn"><h3>Too large to check here</h3><p class="muted">Files up to 60 MB can be checked.</p></div>'; return; }
+    out.innerHTML = '<p class="muted">Checking…</p>';
+    const url = URL.createObjectURL(f);
+    try {
+      const v = await chrome.runtime.sendMessage({ type: "c2paVerify", url, mime: f.type || undefined });
+      if (!v?.ok) { out.innerHTML = `<div class="cc-v cc-warn"><h3>Couldn’t check this file</h3><p class="muted">${v?.reason === "timeout" ? "The check took too long." : "The file may be damaged or in an unsupported format."}</p></div>`; return; }
+      if (v.remote) { out.innerHTML = `<div class="cc-v cc-warn"><h3>Credentials stored online</h3><p class="muted">${e(f.name)} points to Content Credentials held on another server${v.remoteHost ? ` (${e(v.remoteHost)})` : ""}. AI Asli doesn’t fetch them, because that would tell the server which file you’re looking at. To look them up yourself, use the official checker at contentcredentials.org/verify.</p>${CAVEATS}</div>`; return; }
+      if (!v.present) { out.innerHTML = `<div class="cc-v"><h3>No Content Credentials</h3><p class="muted">${e(f.name)} has no C2PA manifest.</p>${CAVEATS}</div>`; return; }
+      const broken = v.mismatch || v.badSignature, cls = broken ? "cc-bad" : v.untrusted || v.expired || v.revoked ? "cc-warn" : "cc-ok";
+      const head = broken ? (v.mismatch ? "Doesn’t match this file" : "Signature doesn’t check out") : v.state === "Trusted" ? "Verified, trusted signer" : "Valid signature, signer not on the trust list";
+      const ai = v.aiCreated ? "Created by AI" : v.aiEdited ? "Edited with AI" : v.aiIngredient ? "Includes AI-generated material" : v.captured ? "Captured with a camera" : "None declared";
+      const rows = [["Signed by", v.signer], ["Issued by", v.issuer !== v.signer ? v.issuer : ""], ["Signed on (claimed)", v.time ? new Date(v.time).toLocaleString() : ""], ["Made with", v.generator], ["AI", ai], ["Actions", (v.actions || []).join(", ")], ["Ingredients", v.ingredients ? String(v.ingredients) : ""]].filter(r => r[1]);
+      const warn = [broken && v.mismatch ? "The file was changed after signing, or the credentials were copied from another file. Its claims can’t be trusted." : "", v.untrusted && !broken ? "The signer isn’t on the C2PA trust list, so be cautious about who signed it." : "", v.expired ? "The signing certificate has expired. That alone doesn’t mean the file changed." : "", v.revoked ? "The signing certificate has been revoked." : ""].filter(Boolean);
+      out.innerHTML = `<div class="cc-v ${cls}"><h3>${e(head)}</h3><dl>${rows.map(([k, x]) => `<dt>${e(k)}</dt><dd>${e(x)}</dd>`).join("")}</dl>${warn.length ? `<ul>${warn.map(w => `<li>${e(w)}</li>`).join("")}</ul>` : ""}<details><summary class="muted">About these checks</summary>${CAVEATS}${v.codes?.length ? `<p class="muted">Codes: ${e(v.codes.join(", "))}</p>` : ""}</details></div>`;
+    } catch { out.innerHTML = '<div class="cc-v cc-warn"><h3>Couldn’t check this file</h3></div>'; }
+    finally { setTimeout(() => URL.revokeObjectURL(url), 30000); }
+  };
+})();
+

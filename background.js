@@ -31,6 +31,33 @@ chrome.contextMenus.onClicked.addListener(async (info, tab) => {
 });
 chrome.commands.onCommand.addListener(async cmd => { if (cmd !== "scan-page") return; const [tab] = await chrome.tabs.query({ active: true, currentWindow: true }); if (tab?.id) scanTab(tab); });
 
+
+/* ---------- Content Credentials (C2PA) verification ----------
+   The official C2PA library needs WebAssembly, which content scripts cannot run, so it lives in a hidden
+   offscreen page (c2pa/offscreen.html). It fetches the WHOLE file, because the signature covers a hash of
+   the whole file: checking only the first bytes would wrongly report every larger file as changed.
+   It runs only when the quick scan has already found credentials, and results are remembered per address. */
+const c2paCache = new Map();
+let offscreenReady = null;
+async function ensureOffscreen() {
+  if (offscreenReady) return offscreenReady;
+  offscreenReady = (async () => {
+    const url = chrome.runtime.getURL("c2pa/offscreen.html");
+    const have = chrome.runtime.getContexts ? (await chrome.runtime.getContexts({ contextTypes: ["OFFSCREEN_DOCUMENT"], documentUrls: [url] })).length > 0 : false;
+    if (!have) await chrome.offscreen.createDocument({ url, reasons: ["WORKERS"], justification: "Verify Content Credentials (C2PA) with WebAssembly on this device." });
+  })().catch(e => { offscreenReady = null; throw e; });
+  return offscreenReady;
+}
+async function verifyC2PA(url, mime) {
+  if (!url || url.startsWith("blob:") && !url.startsWith("blob:" + chrome.runtime.getURL("").slice(0, -1))) return { ok: false, reason: "unreadable" };
+  if (c2paCache.has(url)) return c2paCache.get(url);
+  const own = url.startsWith(chrome.runtime.getURL("")) || url.startsWith("blob:chrome-extension:") || url.startsWith("data:");
+  if (!own && !(await chrome.permissions.contains({ origins: ["<all_urls>"] }))) return { ok: false, reason: "permission" };
+  const job = (async () => { try { await ensureOffscreen(); return await chrome.runtime.sendMessage({ target: "c2pa-offscreen", type: "verify", url, mime }) || { ok: false, reason: "error" }; } catch (e) { return { ok: false, reason: "error", detail: String(e?.message || e).slice(0, 160) }; } })();
+  c2paCache.set(url, job); if (c2paCache.size > 300) c2paCache.delete(c2paCache.keys().next().value);
+  return job;
+}
+
 async function inspect(url, video) {
   try {
     let buf;
@@ -45,11 +72,14 @@ async function inspect(url, video) {
       while (size < max) { const { done, value } = await reader.read(); if (done) break; parts.push(value); size += value.length; }
       reader.cancel().catch(() => {}); buf = new Uint8Array(size); let o = 0; for (const p of parts) { buf.set(p.subarray(0, Math.min(p.length, size - o)), o); o += p.length; if (o >= size) break; }
     }
-    return { bytes: AIAsliMedia.inspectBytes(new TextDecoder("latin1").decode(buf)) };
+    const bytes = AIAsliMedia.inspectBytes(new TextDecoder("latin1").decode(buf));
+    if (bytes?.c2pa) bytes.verified = await verifyC2PA(url, video ? "video/mp4" : undefined);
+    return { bytes };
   } catch { return { bytes: null }; }
 }
 chrome.runtime.onMessage.addListener((msg, sender, reply) => {
   if (msg.type === "inspect") { inspect(msg.url, msg.video).then(reply); return true; }
+  if (msg.type === "c2paVerify") { verifyC2PA(msg.url, msg.mime).then(reply); return true; }
   if (msg.type === "badge" && sender.tab?.id != null) {
     chrome.action.setBadgeText({ tabId: sender.tab.id, text: msg.count ? String(msg.count) : "" });
     chrome.action.setBadgeBackgroundColor({ tabId: sender.tab.id, color: msg.count ? "#D6336C" : "#2F855A" });

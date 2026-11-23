@@ -72,6 +72,7 @@
     [/digitalsourcetype\/composite"/, "Metadata says it combines several pictures whose origins aren’t recorded"],
     [/digitalsourcetype\/(digitalCreation|digitalArt)\b/, "Metadata says a person made it with non-generative digital tools"],
     [/CreatorTool="Little Light Lit"/, "Saved with Little Light Lit, which records any AI-assisted steps"],
+    [/dcterms:provenance="https?:\/\/[^"]+"/, "Points to Content Credentials stored online, which AI Asli doesn’t fetch, to protect your privacy"],
   ];
   /* ---------- Content Credentials (C2PA): read the real manifest ----------
      The manifest lives in a JUMBF box tree (JPEG APP11 segment or PNG "jumb"
@@ -333,8 +334,34 @@
     }
     return out;
   }
+  /* Verified Content Credentials (bytes.verified, from c2pa/verify.js) override what the quick parser read,
+     because the official library checks the signature and that the file matches it. Wording always says
+     "say" or "signed by", never "proves": a signature shows who signed and that nothing changed since,
+     not that the content is true. A mismatch is treated as a warning, and its claims are not trusted.
+     Research basis: Golaszewski et al. (2026), "Verifying Provenance of Digital Media: Security Analysis of C2PA
+     and its Implementation", IACR ePrint 2026/804 (UMBC, Hacker Factor and NSA). */
+  function applyVerified(v, p, why, notes) {
+    if (!v?.ok || !v.present) return { p, used: false };
+    const by = v.signer ? `, signed by ${v.signer}` : "";
+    if (v.mismatch || v.badSignature) {
+      why.unshift(v.mismatch ? "Content Credentials don’t match this file: it was changed after signing, or the credentials were copied from another file" : "Content Credentials are present, but their signature doesn’t check out");
+      notes.push("Don’t rely on these credentials. Any AI or camera claims in them can’t be trusted.");
+      return { p: Math.min(p, 60), used: true, broken: true };
+    }
+    if (v.aiCreated) { p = Math.max(p, 99); why.unshift(`Verified Content Credentials${by}, say it was created by AI`); }
+    else if (v.aiEdited) { p = Math.max(p, 90); why.unshift(`Verified Content Credentials${by}, say it was edited with AI`); }
+    else if (v.aiIngredient) { p = Math.max(p, 86); why.unshift(`Verified Content Credentials${by}, say it includes AI-generated material`); }
+    else if (v.captured) { p = Math.min(p, 5); why.unshift(`Verified Content Credentials${by}, say it was captured with a camera`); }
+    else why.unshift(`Verified Content Credentials${by}, with no AI declared`);
+    if (v.untrusted) notes.push("The signer isn’t on the C2PA trust list, so be cautious about who signed it.");
+    if (v.expired) notes.push("The signing certificate has expired. That alone doesn’t mean the file changed; signed files can stop verifying over time.");
+    if (v.revoked) notes.push("The signing certificate has been revoked: treat these credentials with suspicion.");
+    if (v.generator) notes.push(`Made or edited with: ${v.generator}.`);
+    notes.push("A valid signature shows who signed it and that the file hasn’t changed since. It doesn’t prove the content is true.");
+    return { p, used: true };
+  }
   function judge({ url = "", label = "", alt = "", w = 0, h = 0, kind = "image", bytes = null, original = false, readable = true }) {
-    let p = 12; const why = [];
+    let p = 12; const why = [], notes = [];
     if (bytes) {
       if (bytes.hits.length) { const top = bytes.hits.sort((a, b) => (b.p - a.p) || ((b.c2pa ? 1 : 0) - (a.c2pa ? 1 : 0)))[0]; p = Math.max(p, top.p); why.push(top.why); bytes.hits.slice(1, 2).forEach(x => why.push(x.why)); }
       else if (bytes.c2pa) {
@@ -344,6 +371,12 @@
       if (bytes.camera && !bytes.hits.length) { p = Math.min(p, 8); why.push("Contains camera details (make or model)"); }
       if (bytes.captured && !bytes.hits.length) p = Math.min(p, 8);
       (bytes.context || []).forEach(c => { if (!why.includes(c)) why.push(c); });
+      if (bytes.verified?.ok && bytes.verified.present) {
+        // the verified result replaces the quick parser's unverified "Has Content Credentials..." line
+        const i = why.findIndex(w => /^Has Content Credentials|Content Credentials or IPTC metadata say/.test(w)); if (i >= 0 && !/IPTC/.test(why[i])) why.splice(i, 1);
+        ({ p } = applyVerified(bytes.verified, p, why, notes));
+        for (let i = why.length - 1; i > 0; i--) if (/^Content Credentials say/.test(why[i])) why.splice(i, 1); // the verified line replaces the quick parser's unverified reading
+      }
     }
     for (const [re, name] of HOSTS) if (re.test(url)) { p = Math.max(p, name === "the file name" ? 72 : 86); why.push(name === "the file name" ? "The file name mentions AI generation" : `Comes from ${name}`); break; }
     if (LABEL.test(label)) { p = Math.max(p, 84); why.push("Labelled as AI-generated nearby"); }
@@ -353,15 +386,14 @@
       else if (toks.length === 1 && PROMPT_STRONG.test(alt)) { p = Math.max(p, 64); why.push("Alt text reads like an image-generation prompt"); }
     }
     if (w && h && GEN_SIZES.has(`${w}x${h}`) && kind === "image") { p = why.length ? Math.min(99, p + 4) : Math.max(p, 32); why.push(`Exact size (${w}×${h}) common for AI generators`); }
-    const notes = [];
     if (p <= 50) {
       if (reencoded(url) && !original) notes.push("This site re-compresses images, which removes hidden AI labels, so only links, labels and size could be checked.");
       else if (reencoded(url) && original) notes.push("The site re-compresses images, but AI Asli also checked the original file and found no AI labels.");
       if (!bytes && !readable) notes.push("The file’s hidden details couldn’t be read. Turn on “Read image details” in Settings for a deeper check.");
-      if (bytes && !bytes.c2pa) notes.push("No Content Credentials manifest found, so provenance could not be verified from the file.");
+      if (bytes && !bytes.c2pa) notes.push("No Content Credentials found. That isn’t evidence either way: many sites strip them, and some tools exist to remove them.");
       notes.push(why.length ? "No strong evidence found. Many AI images carry no labels, so this doesn’t mean it was made by a person." : "No evidence found. Many AI images carry no labels, so this doesn’t mean it was made by a person.");
     }
-    return { score: Math.min(99, p), reasons: why.slice(0, 3), evidence: p > 50, notes };
+    return { score: Math.min(99, p), reasons: why.slice(0, 3), evidence: p > 50, notes, verified: bytes?.verified || null };
   }
   globalThis.AIAsliMedia = { inspectBytes, judge, unwrap, reencoded, parseC2PA };
 })();

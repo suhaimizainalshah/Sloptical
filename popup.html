@@ -76,6 +76,15 @@ footer a{color:inherit}
 .toast.show{opacity:1;transform:translate(-50%,0)}
 @media (prefers-reduced-motion:reduce){*{transition:none!important}}
 .card.fair{background:#FFF7E6;border:1px solid #F2D49B;color:#5B4100;font-size:12.5px;line-height:1.45}
+.cc{margin-top:12px;border:1px solid var(--line);border-radius:12px;background:var(--panel);padding:10px 12px}
+.cc summary{cursor:pointer;font-weight:700}
+.cc-pick{display:block;margin:8px 0}.cc-pick input{position:absolute;opacity:0;width:1px;height:1px}
+.cc-pick span{display:inline-block;padding:8px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);font-weight:650;cursor:pointer}
+.cc-pick input:focus-visible+span{outline:2px solid var(--accent);outline-offset:2px}
+.cc-v{border-radius:10px;padding:10px;margin-top:6px;border:1px solid var(--line);background:var(--bg)}
+.cc-v h3{margin:0 0 4px;font-size:14px}.cc-v dl{display:grid;grid-template-columns:auto 1fr;gap:3px 10px;margin:8px 0 0;font-size:12.5px}.cc-v dt{color:var(--muted)}.cc-v dd{margin:0;overflow-wrap:anywhere}
+.cc-v ul{margin:8px 0 0;padding-left:18px;font-size:12.5px}.cc-ok h3{color:#2f855a}.cc-warn h3{color:#8a5a12}.cc-bad h3{color:#c53030}
+@media (prefers-color-scheme:dark){.cc-ok h3{color:#68d391}.cc-warn h3{color:#f6ad55}.cc-bad h3{color:#fc8181}}
 </style>
 </head>
 <body>
@@ -97,6 +106,12 @@ footer a{color:inherit}
     <p class="muted" style="text-align:center" id="shortcut">Shortcut <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>, or right-click any text to check it.</p>
     <div id="results" hidden aria-live="polite"></div>
     <p class="muted" id="week"></p>
+    <details class="cc" id="ccBox">
+      <summary>Check a file’s Content Credentials</summary>
+      <p class="muted">Choose an image or video, for example one someone sent you. AI Asli verifies its Content Credentials (C2PA) on this device: nothing is uploaded.</p>
+      <label class="cc-pick"><input type="file" id="ccFile" accept="image/*,video/mp4,video/quicktime,.heic,.avif,.webp"><span>Choose a file</span></label>
+      <div id="ccOut" aria-live="polite"></div>
+    </details>
   </section>
 
   <!-- WRITING -->
