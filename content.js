@@ -79,7 +79,7 @@
       if (!/^(https?|blob|data|chrome-extension):/.test(u)) continue;
       let b = await readDirect(u, video);
       if (!b) { const r = await ask({ type: "inspect", url: u, video }); if (r?.needPermission) needPermission = true; b = r?.bytes || null; }
-      if (b) { readable = true; if (u !== url) original = true; if (!merged) merged = b; else { merged.hits.push(...b.hits); merged.c2pa ||= b.c2pa; merged.camera ||= b.camera; } if (b.hits.length) break; }
+      if (b) { readable = true; if (u !== url) original = true; if (!merged) merged = b; else { merged.hits.push(...b.hits); merged.c2pa ||= b.c2pa; merged.camera ||= b.camera; merged.captured ||= b.captured; merged.context.push(...(b.context || [])); if (b.c2paManifest?.present && (!merged.c2paManifest?.present || (!merged.c2paManifest.sourceType && b.c2paManifest.sourceType))) merged.c2paManifest = b.c2paManifest; } if (b.hits.length) break; }
     }
     return { bytes: merged, needPermission: needPermission && !readable, original, readable };
   }
