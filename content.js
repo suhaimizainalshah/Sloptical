@@ -2,9 +2,9 @@
    likely AI-made content and explains why on hover. Nothing leaves your device except
    media files the extension downloads itself, if you allow it, to read their metadata. */
 (() => {
-  if (window.__sloptical) return;
-  const D = globalThis.SlopticalDetector, MD = globalThis.SlopticalMedia;
-  const SKIP = "script,style,noscript,textarea,input,select,code,pre,svg,math,[contenteditable=''],[contenteditable='true'],.sloptical-ui";
+  if (window.__aiasli) return;
+  const D = globalThis.AIAsliDetector, MD = globalThis.AIAsliMedia;
+  const SKIP = "script,style,noscript,textarea,input,select,code,pre,svg,math,[contenteditable=''],[contenteditable='true'],.aiasli-ui";
   const BLOCK = "p,li,blockquote,dd,td,th,figcaption,h1,h2,h3,h4,h5,h6,div,article,section,span";
   const state = { flagged: [], marks: [], media: [], observer: null, settings: { threshold: 50, phrases: true, watch: true, media: true }, lastStats: null, scanning: false };
   const band = s => (s >= 80 ? "p" : s >= 65 ? "o" : "y");
@@ -27,19 +27,19 @@
   }
   function clear() {
     state.marks.forEach(m => m.parentNode && m.replaceWith(document.createTextNode(m.textContent))); state.marks = [];
-    document.querySelectorAll("[data-sloptical]").forEach(el => { el.classList.remove("sloptical-y", "sloptical-o", "sloptical-p", "sloptical-flash"); delete el.dataset.sloptical; delete el.dataset.slopticalWhy; delete el.dataset.slopticalKind; });
+    document.querySelectorAll("[data-aiasli]").forEach(el => { el.classList.remove("aiasli-y", "aiasli-o", "aiasli-p", "aiasli-flash"); delete el.dataset.aiasli; delete el.dataset.aiasliWhy; delete el.dataset.aiasliKind; });
     state.media.forEach(m => { m.el.style.outline = m.prevOutline; m.el.style.outlineOffset = m.prevOffset; m.badge?.remove(); }); state.media = [];
     state.flagged = []; state.lastStats = null; hideTip(); document.body?.normalize?.();
   }
   function markPhrases(el, hits) {
     if (!hits.length) return;
     const re = new RegExp(`\\b(${hits.map(h => h.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")).sort((a, b) => b.length - a.length).join("|")})\\b`, "gi");
-    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => (n.parentElement.closest(SKIP + ",mark.sloptical-phrase") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT) });
+    const tw = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, { acceptNode: n => (n.parentElement.closest(SKIP + ",mark.aiasli-phrase") ? NodeFilter.FILTER_REJECT : NodeFilter.FILTER_ACCEPT) });
     const nodes = []; let n; while ((n = tw.nextNode())) nodes.push(n);
     for (const node of nodes) {
       const t = node.nodeValue; re.lastIndex = 0; if (!re.test(t)) continue; re.lastIndex = 0;
       const frag = document.createDocumentFragment(); let last = 0, m;
-      while ((m = re.exec(t))) { frag.append(t.slice(last, m.index)); const mk = document.createElement("mark"); mk.className = "sloptical-phrase"; mk.textContent = m[0]; frag.append(mk); state.marks.push(mk); last = m.index + m[0].length; }
+      while ((m = re.exec(t))) { frag.append(t.slice(last, m.index)); const mk = document.createElement("mark"); mk.className = "aiasli-phrase"; mk.textContent = m[0]; frag.append(mk); state.marks.push(mk); last = m.index + m[0].length; }
       frag.append(t.slice(last)); node.replaceWith(frag);
     }
   }
@@ -54,7 +54,7 @@
   function mediaItems() {
     const out = [];
     document.querySelectorAll("img, video").forEach(el => {
-      if (el.closest(".sloptical-ui") || !visible(el)) return; const r = el.getBoundingClientRect(); if (r.width < 110 || r.height < 110) return;
+      if (el.closest(".aiasli-ui") || !visible(el)) return; const r = el.getBoundingClientRect(); if (r.width < 110 || r.height < 110) return;
       const url = el.currentSrc || el.src || el.poster || el.querySelector?.("source")?.src || ""; if (!url || url.startsWith("data:image/svg")) return;
       const kind = el.tagName === "VIDEO" ? "video" : /\.gif(\?|#|$)/i.test(url) ? "gif" : "image";
       out.push({ el, kind, url, w: el.naturalWidth || el.videoWidth || 0, h: el.naturalHeight || el.videoHeight || 0 });
@@ -85,7 +85,7 @@
   }
   function flagMedia(it, j) {
     const b = band(j.score), el = it.el;
-    el.dataset.sloptical = j.score; el.dataset.slopticalWhy = JSON.stringify(j.reasons); el.dataset.slopticalKind = it.kind;
+    el.dataset.aiasli = j.score; el.dataset.aiasliWhy = JSON.stringify(j.reasons); el.dataset.aiasliKind = it.kind;
     const m = { el, score: j.score, kind: it.kind, reasons: j.reasons, url: it.url, prevOutline: el.style.outline, prevOffset: el.style.outlineOffset };
     el.style.outline = `4px solid ${COLORS[b]}`; el.style.outlineOffset = "-4px"; state.media.push(m); addBadge(m);
   }
@@ -106,16 +106,16 @@
   async function checkMedia(url) {
     const el = [...document.querySelectorAll("img, video")].find(e => [e.currentSrc, e.src, e.poster].includes(url)) || null;
     const kind = el?.tagName === "VIDEO" ? "video" : /\.gif(\?|#|$)/i.test(url) ? "gif" : "image";
-    toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-n"></span><strong>Checking…</strong><span>reading the ${kind}’s details</span></div>`);
+    toast(`<div class="aiasli-head"><span class="aiasli-chip aiasli-chip-n"></span><strong>Checking…</strong><span>reading the ${kind}’s details</span></div>`);
     const it = { el: el || document.body, kind, url, w: el?.naturalWidth || el?.videoWidth || 0, h: el?.naturalHeight || el?.videoHeight || 0 };
     const { j } = await judgeItem(it);
-    if (el && j.score > state.settings.threshold && !el.dataset.sloptical) flagMedia(it, j);
+    if (el && j.score > state.settings.threshold && !el.dataset.aiasli) flagMedia(it, j);
     const flagged = j.score > state.settings.threshold, list = flagged ? j.reasons : [...j.reasons.map(r => `Weak sign only: ${r}`), ...j.notes];
-    toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${flagged ? band(j.score) : "n"}"></span><strong>${flagged ? j.score + "%" : j.reasons.length ? "No strong AI evidence" : "No AI evidence"}</strong><span>${flagged ? label(j.score) : "found in this " + kind}</span></div>${list.length ? `<ul>${list.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">${flagged ? "Based on the evidence found. Check the original source before sharing." : "AI Asli only reports evidence it can find. Click to close."}</p>`);
+    toast(`<div class="aiasli-head"><span class="aiasli-chip aiasli-chip-${flagged ? band(j.score) : "n"}"></span><strong>${flagged ? j.score + "%" : j.reasons.length ? "No strong AI evidence" : "No AI evidence"}</strong><span>${flagged ? label(j.score) : "found in this " + kind}</span></div>${list.length ? `<ul>${list.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="aiasli-foot">${flagged ? "Based on the evidence found. Check the original source before sharing." : "AI Asli only reports evidence it can find. Click to close."}</p>`);
     return j;
   }
   function addBadge(m) {
-    const b = document.createElement("div"); b.className = `sloptical-ui sloptical-badge sloptical-badge-${band(m.score)}`;
+    const b = document.createElement("div"); b.className = `aiasli-ui aiasli-badge aiasli-badge-${band(m.score)}`;
     b.textContent = `AI ${m.score}%`; b.setAttribute("aria-hidden", "true"); document.documentElement.appendChild(b); m.badge = b; placeBadges();
   }
   function placeBadges() { state.media.forEach(m => { if (!m.badge) return; const r = m.el.getBoundingClientRect(); m.badge.style.left = (r.left + scrollX + 8) + "px"; m.badge.style.top = (r.top + scrollY + 8) + "px"; m.badge.style.display = r.width ? "" : "none"; }); }
@@ -133,7 +133,7 @@
         const r = D.score(text.slice(0, 6000)); if (r.tooShort) continue;
         scanned++; words += r.words; weighted += r.score * r.words;
         if (r.score > state.settings.threshold) {
-          el.dataset.sloptical = r.score; el.dataset.slopticalWhy = JSON.stringify(r.reasons); el.dataset.slopticalKind = "text"; el.classList.add("sloptical-" + band(r.score));
+          el.dataset.aiasli = r.score; el.dataset.aiasliWhy = JSON.stringify(r.reasons); el.dataset.aiasliKind = "text"; el.classList.add("aiasli-" + band(r.score));
           state.flagged.push({ el, score: r.score, excerpt: text.replace(/\s+/g, " ").trim().slice(0, 110) }); if (state.settings.phrases) markPhrases(el, r.hits);
         }
       }
@@ -153,48 +153,48 @@
   function focusItem(kind, i) {
     const it = kind === "media" ? state.media[i] : state.flagged[i]; if (!it) return;
     it.el.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "center" });
-    it.el.classList.remove("sloptical-flash"); void it.el.offsetWidth; it.el.classList.add("sloptical-flash"); setTimeout(placeBadges, 700);
+    it.el.classList.remove("aiasli-flash"); void it.el.offsetWidth; it.el.classList.add("aiasli-flash"); setTimeout(placeBadges, 700);
   }
 
   /* ---------- hover explanation ---------- */
   let tip = null, tipFor = null;
   function showTip(el, x, y) {
-    if (!tip) { tip = document.createElement("div"); tip.id = "sloptical-tip"; tip.className = "sloptical-ui sloptical-tip"; tip.setAttribute("role", "tooltip"); document.documentElement.appendChild(tip); }
+    if (!tip) { tip = document.createElement("div"); tip.id = "aiasli-tip"; tip.className = "aiasli-ui aiasli-tip"; tip.setAttribute("role", "tooltip"); document.documentElement.appendChild(tip); }
     if (tipFor !== el) {
-      el.setAttribute("aria-describedby", "sloptical-tip");
-      const s = +el.dataset.sloptical, why = JSON.parse(el.dataset.slopticalWhy || "[]"), kind = el.dataset.slopticalKind || "text";
+      el.setAttribute("aria-describedby", "aiasli-tip");
+      const s = +el.dataset.aiasli, why = JSON.parse(el.dataset.aiasliWhy || "[]"), kind = el.dataset.aiasliKind || "text";
       const what = kind === "text" ? "this passage was written by AI" : `this ${kind === "gif" ? "GIF" : kind} was made with AI`;
-      tip.innerHTML = `<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${band(s)}"></span><strong>${s}%</strong><span>${label(s)}</span></div><div class="sloptical-sub">Likelihood ${what}</div>${why.length ? `<ul>${why.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">${kind === "text" ? "A style estimate, not proof. Careful writers and people writing in a second language can trigger these signals too." : "Based on the evidence found. Check the original source before sharing."}</p>`;
+      tip.innerHTML = `<div class="aiasli-head"><span class="aiasli-chip aiasli-chip-${band(s)}"></span><strong>${s}%</strong><span>${label(s)}</span></div><div class="aiasli-sub">Likelihood ${what}</div>${why.length ? `<ul>${why.map(w => `<li>${String(w).replace(/[<>&]/g, "")}</li>`).join("")}</ul>` : ""}<p class="aiasli-foot">${kind === "text" ? "A style estimate, not proof. Careful writers and people writing in a second language can trigger these signals too." : "Based on the evidence found. Check the original source before sharing."}</p>`;
       tipFor = el;
     }
-    const pad = 14; tip.classList.add("sloptical-show"); const w = tip.offsetWidth, h = tip.offsetHeight;
+    const pad = 14; tip.classList.add("aiasli-show"); const w = tip.offsetWidth, h = tip.offsetHeight;
     tip.style.left = Math.max(8, Math.min(innerWidth - w - 8, x + pad)) + "px"; tip.style.top = (y + pad + h > innerHeight ? Math.max(8, y - h - pad) : y + pad) + "px";
   }
-  function hideTip() { tipFor?.removeAttribute("aria-describedby"); tip?.classList.remove("sloptical-show"); tipFor = null; }
-  document.addEventListener("mousemove", e => { const el = e.target.closest?.("[data-sloptical]"); if (el) showTip(el, e.clientX, e.clientY); else if (tipFor) hideTip(); }, { passive: true });
-  document.addEventListener("focusin", e => { const el = e.target.closest?.("[data-sloptical]"); if (el) { const r = el.getBoundingClientRect(); showTip(el, r.left, r.bottom); } });
+  function hideTip() { tipFor?.removeAttribute("aria-describedby"); tip?.classList.remove("aiasli-show"); tipFor = null; }
+  document.addEventListener("mousemove", e => { const el = e.target.closest?.("[data-aiasli]"); if (el) showTip(el, e.clientX, e.clientY); else if (tipFor) hideTip(); }, { passive: true });
+  document.addEventListener("focusin", e => { const el = e.target.closest?.("[data-aiasli]"); if (el) { const r = el.getBoundingClientRect(); showTip(el, r.left, r.bottom); } });
   addEventListener("scroll", hideTip, { passive: true });
 
   /* ---------- keep up with new content ---------- */
   let watchT;
-  function startWatch() { state.observer = new MutationObserver(muts => { if (muts.every(m => [...m.addedNodes].every(n => n.nodeType !== 1 || n.closest?.(".sloptical-ui") || n.matches?.("mark.sloptical-phrase")))) return; clearTimeout(watchT); watchT = setTimeout(() => scan(), 1800); }); state.observer.observe(document.body, { childList: true, subtree: true }); }
+  function startWatch() { state.observer = new MutationObserver(muts => { if (muts.every(m => [...m.addedNodes].every(n => n.nodeType !== 1 || n.closest?.(".aiasli-ui") || n.matches?.("mark.aiasli-phrase")))) return; clearTimeout(watchT); watchT = setTimeout(() => scan(), 1800); }); state.observer.observe(document.body, { childList: true, subtree: true }); }
   function stopWatch() { state.observer?.disconnect(); state.observer = null; }
 
   /* ---------- check selected text ---------- */
-  function toast(html) { let t = document.querySelector(".sloptical-toast"); if (!t) { t = document.createElement("div"); t.className = "sloptical-ui sloptical-toast"; t.setAttribute("role", "status"); document.documentElement.appendChild(t); t.addEventListener("click", () => t.classList.remove("sloptical-show")); } t.innerHTML = html; t.classList.add("sloptical-show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("sloptical-show"), 10000); }
+  function toast(html) { let t = document.querySelector(".aiasli-toast"); if (!t) { t = document.createElement("div"); t.className = "aiasli-ui aiasli-toast"; t.setAttribute("role", "status"); document.documentElement.appendChild(t); t.addEventListener("click", () => t.classList.remove("aiasli-show")); } t.innerHTML = html; t.classList.add("aiasli-show"); clearTimeout(toast.t); toast.t = setTimeout(() => t.classList.remove("aiasli-show"), 10000); }
   function checkText(text) {
     const r = D.analyse(text || "");
     if (r.tooShort) { toast(`<strong>AI Asli</strong> needs at least 25 words to judge. Select a longer passage.`); return r; }
     const ok = r.score <= 50;
-    toast(`<div class="sloptical-head"><span class="sloptical-chip sloptical-chip-${ok ? "n" : band(r.score)}"></span><strong>${r.score}%</strong><span>${ok ? "Reads as human-written" : label(r.score)}</span></div><div class="sloptical-sub">${r.proportion}% of sentences read as AI-like</div>${r.reasons.length ? `<ul>${r.reasons.map(w => `<li>${w}</li>`).join("")}</ul>` : ""}<p class="sloptical-foot">A style estimate, not proof. Click to close.</p>`);
+    toast(`<div class="aiasli-head"><span class="aiasli-chip aiasli-chip-${ok ? "n" : band(r.score)}"></span><strong>${r.score}%</strong><span>${ok ? "Reads as human-written" : label(r.score)}</span></div><div class="aiasli-sub">${r.proportion}% of sentences read as AI-like</div>${r.reasons.length ? `<ul>${r.reasons.map(w => `<li>${w}</li>`).join("")}</ul>` : ""}<p class="aiasli-foot">A style estimate, not proof. Click to close.</p>`);
     return r;
   }
 
-  window.__sloptical = { checkMedia, scan, clear: () => { stopWatch(); clear(); say({ type: "badge", count: 0 }); }, checkText, stats: () => state.lastStats, focus: focusItem };
+  window.__aiasli = { checkMedia, scan, clear: () => { stopWatch(); clear(); say({ type: "badge", count: 0 }); }, checkText, stats: () => state.lastStats, focus: focusItem };
   try {
     chrome.runtime.onMessage.addListener((msg, _s, reply) => {
       if (msg.type === "scan") { scan(msg.settings).then(reply); return true; }
-      if (msg.type === "clear") { window.__sloptical.clear(); reply({ ok: true }); }
+      if (msg.type === "clear") { window.__aiasli.clear(); reply({ ok: true }); }
       else if (msg.type === "check") reply(checkText(msg.text || String(getSelection())));
       else if (msg.type === "checkMedia") { checkMedia(msg.url).then(reply); return true; }
       else if (msg.type === "stats") reply(state.lastStats);

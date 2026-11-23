@@ -6,7 +6,7 @@
    non-native English writers", Patterns 4(7)). Scores must never be the sole basis for academic,
    employment or disciplinary decisions. Present them as a prompt for conversation, not a verdict. */
 (() => {
-  if (globalThis.SlopticalDetector) return;
+  if (globalThis.AIAsliDetector) return;
 
   // Phrases that chat models overuse. Weight 1 = common tell, 2 = strong tell.
   const PHRASES = [
@@ -273,5 +273,5 @@
     out = out.replace(new RegExp(`\\b(a|an)\\s+(${vals})\\b`, "gi"), (m, art, w) => { const an = /^[aeiou]/i.test(w) && !AN_EXCEPT.has(w.toLowerCase()); const fixed = an ? "an" : "a"; return (art[0] === art[0].toUpperCase() ? fixed[0].toUpperCase() + fixed.slice(1) : fixed) + " " + w; });
     return { text: out, changes: n };
   }
-  globalThis.SlopticalDetector = { score, analyse, swapWords, PHRASES: PHRASES.map(p => p[0]) };
+  globalThis.AIAsliDetector = { score, analyse, swapWords, PHRASES: PHRASES.map(p => p[0]) };
 })();

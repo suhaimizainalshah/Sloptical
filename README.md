@@ -36,6 +36,7 @@ This notice appears with every writing check, in the welcome guide, and in the d
 - **Weekly summary** of your scans, stored only on your device.
 - **Settings:** threshold, phrase underlining, media checks, keep checking as the page loads more, deeper image metadata checks, automatic scanning, and sites never to scan.
 - **Welcome page** with a live demo on first install.
+- **Classroom game** (`classroom/index.html`): "Spot the AI" — students guess which passages and pictures are AI-made, then discuss the clues. Human passages are public-domain classics; the AI ones lean on chatbot habits on purpose. Linked from the welcome page.
 
 ## Honest limits
 - **Text:** the score is a style estimate, not proof. No detector can reliably prove text is AI-written, and style signals also appear in formal writing and in writing by people using a second language. Don't use it as the sole basis for judging anyone.

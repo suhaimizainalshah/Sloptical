@@ -1,6 +1,6 @@
 /* AI Asli popup */
 const $ = s => document.querySelector(s), $$ = s => [...document.querySelectorAll(s)];
-const D = globalThis.SlopticalDetector;
+const D = globalThis.AIAsliDetector;
 const DEF = { threshold: 50, phrases: true, watch: true, media: true, auto: false, deep: false, skip: "" };
 const ALL = { origins: ["<all_urls>"] };
 const band = s => (s >= 80 ? "p" : s >= 65 ? "o" : s > 50 ? "y" : "n");

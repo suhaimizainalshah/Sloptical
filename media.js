@@ -4,7 +4,7 @@
    services, and "AI-generated" labels near the media. It cannot see invisible watermarks,
    and most AI images online have their metadata removed, so "no evidence" is not "human-made". */
 (() => {
-  if (globalThis.SlopticalMedia) return;
+  if (globalThis.AIAsliMedia) return;
   const HOSTS = [
     [/cdn\.midjourney\.com|mj-gallery/i, "Midjourney"], [/oaidalleapiprodscus|dalle|images\.openai\.com|sora\.(com|chatgpt)/i, "OpenAI (DALL·E or Sora)"],
     [/replicate\.delivery|replicate\.com/i, "Replicate (AI model host)"], [/image\.civitai\.com|civitai/i, "Civitai (AI art site)"],
@@ -111,5 +111,5 @@
     }
     return { score: Math.min(99, p), reasons: why.slice(0, 3), evidence: p > 50, notes };
   }
-  globalThis.SlopticalMedia = { inspectBytes, judge, unwrap, reencoded };
+  globalThis.AIAsliMedia = { inspectBytes, judge, unwrap, reencoded };
 })();
