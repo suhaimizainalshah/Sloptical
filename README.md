@@ -69,7 +69,7 @@ store/            Web Store screenshots, promo tile and listing text
 3. In the dashboard, click **New item** and upload the zip.
 4. **Store listing**: copy the name, summary, description and permission reasons from `store/STORE_LISTING.md`, and upload the three 1280×800 screenshots and the 440×280 promo tile from `store/`.
 5. **Privacy practices**: state the single purpose ("highlights likely AI-generated writing on web pages"), justify each permission (wording is in `privacy.html`), and declare that you collect no user data.
-6. **Privacy policy URL**: https://github.com/suhaimizainalshah/Sloptical/blob/main/privacy.html
+6. **Privacy policy URL**: https://github.com/suhaimizainalshah/ai-asli/blob/main/privacy.html
 7. **Submit for review**. Reviews usually take a few days; narrow permissions like these help.
 8. To update later, raise `version` in `manifest.json`, zip again and upload.
 
