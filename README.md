@@ -16,6 +16,8 @@ Only items scoring **above 50%** are highlighted; you can raise the threshold in
 Besides evidence of AI generation, AI Asli reads the standard IPTC “digital source type” labels that explain how an image was made, and shows them as reasons without raising the AI score: **edited by a person**, **algorithmically enhanced** (such as background removal), and **captured with a camera** (which lowers the score). It also recognises images saved with **Little Light Lit**, which writes these labels honestly, lists any AI-assisted steps, and never removes an AI label that came with the original photo.
 Also recognised: *composite of real captures*, *composite of elements* and *digital creation*. A picture that contains an AI-generated element is scored on its own label (*edited with AI*), with the AI ingredient listed as a separate reason.
 
+When an image carries a Content Credentials (C2PA) manifest, AI Asli reads the manifest itself — not just the metadata string — and reports who signed it and what digital source type it declares (for example, created by AI, edited with AI, or captured with a camera). That claim is shown as a reason, with the signer named. The signature is **not** cryptographically verified, so a manifest is a claim about provenance, not proof: the score stays an estimate.
+
 
 ## Use it fairly
 AI Asli gives an **estimate from patterns, not proof**. Research has found that style-based detectors flag people writing in a second language, and very formal or templated writing, more often than others (Liang et al., 2023, *GPT detectors are biased against non-native English writers*, Patterns 4(7)). So:
@@ -40,7 +42,7 @@ This notice appears with every writing check, in the welcome guide, and in the d
 
 ## Honest limits
 - **Text:** the score is a style estimate, not proof. No detector can reliably prove text is AI-written, and style signals also appear in formal writing and in writing by people using a second language. Don't use it as the sole basis for judging anyone.
-- **Media:** AI Asli only finds *evidence* AI media carries. Most AI images online have their metadata removed, and invisible watermarks such as SynthID can't be read by an extension, so "no evidence" doesn't mean human-made.
+- **Media:** AI Asli only finds *evidence* AI media carries. Most AI images online have their metadata removed, and invisible watermarks such as SynthID can't be read by an extension, so "no evidence" doesn't mean human-made. A Content Credentials manifest is read, not cryptographically verified: it reports what the signer claims, and a forged manifest is possible, so it is a reason to look closer, not proof.
 
 ## Try it locally (2 minutes)
 1. Download or clone this repository.
