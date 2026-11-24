@@ -1,6 +1,8 @@
-# AI Asli
+<img src="icons/logo.svg" alt="AI Asli logo" width="80" height="80">
 
-A Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs in your browser: no AI Asli servers, no accounts, no tracking.
+# AI Asli: AI Text, Image and Video Checker
+
+*Asli* is Malay for “genuine”. AI Asli is a Chrome extension that spots **AI slop**: it highlights writing, images, GIFs and videos that are likely AI-generated, explains why when you hover, and checks your own writing with tips to make it sound more like you. Everything runs in your browser: no AI Asli servers, no accounts, no tracking.
 
 Made by [AI Benar Advisory](https://suhaimizainalshah.github.io/AI-Benar-Advisory/) — independent AI compliance and governance support for the EU, Vietnam, South Korea and ASEAN.
 
@@ -62,7 +64,7 @@ This notice appears with every writing check, in the welcome guide, and in the d
 - **Weekly summary** of your scans, stored only on your device.
 - **Settings:** threshold, phrase underlining, media checks, keep checking as the page loads more, deeper image metadata checks, automatic scanning, and sites never to scan.
 - **Welcome page** with a live demo on first install.
-- **Classroom game** (`classroom/index.html`): "Spot the AI" — students guess which passages and pictures are AI-made, then discuss the clues. Human passages are public-domain classics; the AI ones lean on chatbot habits on purpose. Linked from the welcome page.
+- **Classroom game** (`classroom/index.html`): **Mana Asli?** (Malay for “Which is genuine?” or “Where’s the original?”), a game to spot the AI: students guess which passages and pictures are AI-made, then discuss the clues. Human passages are public-domain classics; the AI ones lean on chatbot habits on purpose. Linked from the welcome page.
 
 ## Honest limits
 - **Text:** the score is a style estimate, not proof. No detector can reliably prove text is AI-written, and style signals also appear in formal writing and in writing by people using a second language. Don't use it as the sole basis for judging anyone.
@@ -89,7 +91,7 @@ popup.html/js     the toolbar panel: This page, Check writing, Settings
 welcome.html/js   first-run page with a live demo (demo/ holds its sample images)
 privacy.html      privacy policy
 c2pa/             Content Credentials verifier: hidden page, official C2PA library, C2PA trust lists
-classroom/        Spot the AI, a classroom game (self-contained)
+classroom/        Mana Asli?, the classroom game (index.html, game.js and share.js; uses detector.js and media.js)
 icons/            16, 32, 48 and 128 px icons
 store/            Web Store screenshots, promo tile and listing text
 ```
@@ -116,3 +118,6 @@ store/            Web Store screenshots, promo tile and listing text
 
 ## Licence
 MIT. Contributions to the phrase list and scoring rules are welcome.
+
+## Address bar
+Type `asli` and press Enter to scan the page you’re on, `asli game` to open Mana Asli?, or `asli` followed by pasted text to check that writing straight away.

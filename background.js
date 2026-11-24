@@ -96,3 +96,20 @@ chrome.tabs.onUpdated.addListener(async (tabId, info, tab) => {
   const s = await settings(); if (!s.auto || !(await chrome.permissions.contains({ origins: ["<all_urls>"] }))) return;
   scanTab(tab);
 });
+
+/* ---------- the address bar ---------- */
+const xesc = s => String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&apos;");
+const activeTab = async () => (await chrome.tabs.query({ active: true, lastFocusedWindow: true }))[0];
+function omni(keyword, def, items, enter) { // items: [word, description]
+  chrome.omnibox.setDefaultSuggestion({ description: def });
+  chrome.omnibox.onInputChanged.addListener((text, suggest) => { const t = text.trim().toLowerCase();
+    suggest(items.filter(([w]) => !t || w.startsWith(t.split(" ")[0])).slice(0, 6).map(([w, d]) => ({ content: w, description: `<match>${xesc(keyword + " " + w)}</match>  <dim>${xesc(d)}</dim>` }))); });
+  chrome.omnibox.onInputEntered.addListener(text => enter(text.trim()));
+}
+// asli: scan this page; asli game: the classroom game; asli + pasted text: check that writing
+omni("asli", "AI Asli: press Enter to <match>scan this page</match>, or paste text to check it",
+  [["scan", "Highlight likely AI-made text, images and video on this page"], ["game", "Open Mana Asli? (Which is genuine?), the classroom game"]],
+  async t => { const w = t.toLowerCase();
+    if (w === "game" || w === "mana asli") return chrome.tabs.create({ url: chrome.runtime.getURL("classroom/index.html") });
+    if (t.split(/\s+/).length >= 6) { await chrome.storage.session.set({ omniText: t }); return chrome.tabs.create({ url: chrome.runtime.getURL("popup.html?write=1") }); }
+    const tab = await activeTab(); if (tab?.id && !(tab.url && !/^(https?|file):/.test(tab.url))) scanTab(tab); }); // the address can be hidden: try unless it's known not to be a web page

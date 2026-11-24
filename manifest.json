@@ -1,12 +1,12 @@
 {
   "manifest_version": 3,
-  "name": "AI Asli",
+  "name": "AI Asli: AI Text, Image and Video Checker",
   "short_name": "AI Asli",
-  "version": "1.3.0",
-  "description": "Highlights text, images and videos likely made with AI, explains why on hover, and checks your own writing. Runs on your device.",
+  "version": "1.4.0",
+  "description": "Spots text, images and videos likely made with AI, checks Content Credentials, and explains why. Runs on your device.",
   "action": {
     "default_popup": "popup.html",
-    "default_title": "Scan this page with AI Asli",
+    "default_title": "AI Asli: check this page for AI-made content",
     "default_icon": {
       "16": "icons/icon16.png",
       "32": "icons/icon32.png",
@@ -45,5 +45,8 @@
   "homepage_url": "https://github.com/suhaimizainalshah/ai-asli",
   "content_security_policy": {
     "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'"
+  },
+  "omnibox": {
+    "keyword": "asli"
   }
 }

@@ -1,13 +1,18 @@
 # Chrome Web Store listing for AI Asli
 
 ## Name
-AI Asli: AI Content Detector
+AI Asli: AI Text, Image and Video Checker
+
+(This must match the name in manifest.json, which is what Chrome shows.)
 
 ## Summary (132 characters max)
-Highlights writing, images and videos likely made with AI, explains why, and helps your writing sound more human. Private.
+Spots writing, images and videos likely made with AI, checks Content Credentials, explains why, and helps your writing. Private.
 
 ## Description
 AI Asli helps you spot AI slop on the web, and keep it out of your own writing.
+
+WHAT’S NEW IN 1.4
+• Mana Asli?, a classroom game built in (open it from the popup). “Mana Asli?” is Malay for “Which is genuine?” or “Where’s the original?”: students guess which passage or picture is human-made and which is AI, then discuss the clues. Teachers can copy a link for students who don’t have the extension.
 
 HIGHLIGHTS ON ANY PAGE
 • Passages scoring above 50% are highlighted: yellow (possibly), orange (likely), pink (very likely).

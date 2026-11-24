@@ -140,4 +140,7 @@ $("#welcome").onclick = () => chrome.tabs.create({ url: "welcome.html" });
     finally { setTimeout(() => URL.revokeObjectURL(url), 30000); }
   };
 })();
-
+// open the classroom game in its own tab (links in a popup otherwise open inside it)
+document.getElementById("gameLink")?.addEventListener("click", e => { e.preventDefault(); chrome.tabs.create({ url: chrome.runtime.getURL("classroom/index.html") }); window.close(); });
+// text pasted into the address bar (asli + text) arrives here and is checked straight away
+if (new URLSearchParams(location.search).get("write")) chrome.storage.session.get("omniText").then(({ omniText }) => { if (!omniText) return; chrome.storage.local.set({ lastTab: "t-text" }); selectTab("t-text"); setTimeout(() => selectTab("t-text"), 350); /* show the writing tab, after the popup restores its last tab */ const tx = document.getElementById("txt"); tx.value = omniText; tx.dispatchEvent(new Event("input", { bubbles: true })); chrome.storage.session.remove("omniText"); tx.scrollIntoView({ block: "center" }); if (!document.getElementById("checkTxt").disabled) checkWriting(); });

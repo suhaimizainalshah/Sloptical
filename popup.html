@@ -1,8 +1,8 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8">
-<title>AI Asli</title>
+<meta charset="utf-8"><link rel="icon" href="icons/logo.svg" type="image/svg+xml"><link rel="icon" href="icons/icon32.png" type="image/png" sizes="32x32">
+<title>AI Asli: AI Text, Image and Video Checker</title>
 <style>
 :root{--bg:#ffffff;--panel:#f6f7f9;--ink:#16191d;--muted:#5d6671;--line:#e3e7eb;--accent:#d6336c;--accent-2:#ff8a3d;--on:#fff;--y:#ffd60a;--o:#ff9a3c;--p:#ff6fb5;--ok:#2f9e6a;color-scheme:light}
 @media (prefers-color-scheme:dark){:root{--bg:#17191d;--panel:#202328;--ink:#eef1f4;--muted:#9aa4ae;--line:#30353b;--accent:#ff5c95;--accent-2:#ffa45c;--on:#1a0b11;--ok:#4cc38a;color-scheme:dark}}
@@ -86,7 +86,7 @@ footer a{color:inherit}
 .cc-v ul{margin:8px 0 0;padding-left:18px;font-size:12.5px}.cc-ok h3{color:#2f855a}.cc-warn h3{color:#8a5a12}.cc-bad h3{color:#c53030}
 @media (prefers-color-scheme:dark){.cc-ok h3{color:#68d391}.cc-warn h3{color:#f6ad55}.cc-bad h3{color:#fc8181}}
 </style>
-</head>
+<style>.omni{margin:8px 0 0;font-size:12.5px;line-height:1.5;color:inherit;opacity:.92}.omni b{font-weight:700}.omni kbd{font:600 11.5px ui-monospace,SFMono-Regular,Menlo,monospace;border:1px solid rgba(127,127,127,.45);border-bottom-width:2px;border-radius:5px;padding:0 5px;background:rgba(127,127,127,.12);white-space:nowrap}</style></head>
 <body>
 <header><img src="icons/icon48.png" alt=""><h1>AI Asli</h1><span class="ver" id="ver"></span></header>
 <nav class="tabs" role="tablist" aria-label="Sections">
@@ -139,7 +139,8 @@ footer a{color:inherit}
     <div class="set"><div class="row"><button class="ghost" id="clear">Remove highlights</button><button class="ghost" id="resetStats">Clear my stats</button></div><button class="ghost" id="welcome">How AI Asli works</button></div>
   </section>
 </main>
-<footer><span>An estimate, not proof. Nothing is sent to AI Asli.</span><span><a href="https://suhaimizainalshah.github.io/AI-Benar-Advisory/" target="_blank" rel="noopener">AI Benar Advisory</a> · <a href="https://github.com/suhaimizainalshah/ai-asli/blob/main/privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:suhaimizainalshah@gmail.com">Email</a></span></footer>
+<p class="omni" style="padding:0 14px"><b>Address bar:</b> type <kbd>asli</kbd> and press Enter to scan the page, <kbd>asli game</kbd> for Mana Asli?, or <kbd>asli</kbd> and paste text to check it.</p>
+<footer><span>An estimate, not proof. Nothing is sent to AI Asli.</span><span><a href="classroom/index.html" id="gameLink" title="Mana Asli? (Malay for “Which is genuine?” or “Where’s the original?”): a classroom game to spot AI-made passages and pictures">Mana Asli? game</a> · <a href="https://suhaimizainalshah.github.io/AI-Benar-Advisory/" target="_blank" rel="noopener">AI Benar Advisory</a> · <a href="https://github.com/suhaimizainalshah/ai-asli/blob/main/privacy.html" target="_blank" rel="noopener">Privacy</a> · <a href="mailto:suhaimizainalshah@gmail.com">Email</a></span></footer>
 <div class="toast" id="toast" role="status"></div>
 <script src="detector.js"></script>
 <script src="popup.js"></script>
